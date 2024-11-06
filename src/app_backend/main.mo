@@ -6,6 +6,7 @@ import Result "mo:base/Result";
 import Text "mo:base/Text";
 import Hash "mo:base/Hash";
 import Iter "mo:base/Iter";
+import Incentives "incentives.mod";
 
 // Main actor
 actor {
@@ -18,6 +19,21 @@ type ResultType = Result.Result<Nat, Text>;
         owner: Principal;
         members: [(Principal, Text)]; // (userId, role)
         projects: [Nat];
+    };
+
+     // Create stable storage for credits and transactions
+    private let userCredits = HashMap.HashMap<Principal, Nat>(0, Principal.equal, Principal.hash);
+    private let transactions : [Incentives.Transaction] = [];
+
+    // Example of using two functions from the Incentives module
+    public shared(msg) func addUserCredits(amount: Nat) : async Result.Result<(), Text> {
+        let userId = msg.caller;
+        await Incentives.addCredits(userId, amount, userCredits, transactions)
+    };
+
+    public shared(msg) func checkMyBalance() : async Result.Result<Nat, Text> {
+        let userId = msg.caller;
+        await Incentives.getCreditBalance(userId, userCredits)
     };
     // Exported variables
     private stable var nextOrgId = 0;
