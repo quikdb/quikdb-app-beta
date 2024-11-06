@@ -1,8 +1,8 @@
-// Authentication Module
 import Time "mo:base/Time";
 import Principal "mo:base/Principal";
-import ErrorModule "./error.module";
+import ErrorTypes "./error.module";
 import Result "mo:base/Result";
+import HashMap "mo:base/HashMap";
 
 module Authentication {
 
@@ -26,6 +26,7 @@ module Authentication {
         readsOnly : Bool;
         readsAndWrites : Bool;
     };
+
     public type OwnerDetails = {
         canisterId : Text;
         canisterUrl : Text;
@@ -34,25 +35,30 @@ module Authentication {
         createdAt : Time.Time;
     };
 
+    // Sample permissions storage
+    var permissionsMap = HashMap<Principal, PermissionsDetails>();
+
     public func initOwner(_token : OwnerDetails) : async Text {
-        // Implementation steps: None for now.
-        // any one can call this function
         return "Owner Details To be Saved in Permanent Storage";
     };
 
-    // Sets permissions for a team member within an organization.
-    // public func setPermissions(_orgId: Nat, _userId: Principal, _role: Text): async () {
-    //     // Implementation steps:
-    //     // 1. Authenticate the caller.
-    //     // 2. Verify caller's authority to assign roles.
-    //     // 3. Update the user's role in the organization's context.
-    //     // 4. Enforce role-based access control.
-    // };
-
-    public shared ({ caller }) func setPermissions(_orgId : Nat, _userId : Principal, _role : Text) : async Result.Result<(), ErrorModule.QuikDBError> {
-        // Step 1: Authenticate the caller.
-       if (Principal.isAnonymous(caller)) {
+    public func setPermissions(_orgId : Nat, _userId : Principal, _role : Text) : async Result.Result<(), ErrorTypes.QuikDBError> {
+        // Step 1: Check if the caller is a valid principal (not anonymous).
+        if (Principal.isAnonymous(_userId)) {
             return #err(#ValidationError("Unauthorized: Anonymous caller cannot set permissions"));
+        };
+
+        // Step 2: Verify caller's authority to assign roles.
+        let callerPermissionsOpt = permissionsMap.get(caller);
+        switch (callerPermissionsOpt) {
+            case (?permissions) {
+                if permissions.isAdmin == false {
+                    return #err(#ValidationError("Unauthorized: Caller does not have authority to assign roles"));
+                };
+            };
+            case (null) {
+                return #err(#ValidationError("Unauthorized: Caller permissions not found"));
+            };
         };
 
         // Further implementation for setting permissions will go here...
