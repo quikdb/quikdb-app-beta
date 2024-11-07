@@ -1,7 +1,7 @@
 import Result "mo:base/Result";
 import ErrorTypes "ErrorTypes";
 
-actor QuikDB {
+module {
     /// Reusable function to handle Result.Result types.
     ///
     /// # Arguments
