@@ -1,17 +1,15 @@
 // Organization and Project Management Module
 import Principal "mo:base/Principal";
-import HashMap "mo:base/HashMap";
 import Array "mo:base/Array";
-import Blob "mo:base/Blob";
 import Text "mo:base/Text";
 import Nat "mo:base/Nat";
 import Hash "mo:base/Hash";
-import Error "mo:base/Error";
-import Iter "mo:base/Iter";
+import Result "mo:base/Result";
+import Time "mo:base/Time";
+import Buffer "mo:base/Buffer";
+import Blob "mo:base/Blob";
 
 module {
-  
-
     // Define a custom hash function for Nat
     public func customNatHash(n: Nat): Hash.Hash {
         // Convert Nat to Text and hash it
@@ -19,161 +17,286 @@ module {
         return Text.hash(text);
     };
 
+    public type Organization = {
+        id: Text;
+        name: Text;
+        owner: Principal;
+        members: [Principal];
+        created_at: Time.Time;
+        details: ?Blob;
+    };
+
+    public type Role = {
+        userId: Principal;
+        role: Blob;
+    };
+
+    public type Project = {
+        id: Nat;
+        orgId: Text;
+        details: Blob;
+        created_at: Time.Time;
+    };
+
     public class OrganizationManager() {
-        private var nextOrgId: Nat = 0;
-        private var nextProjectId: Nat = 0;
-        private let organizations = HashMap.HashMap<Nat, {
-            id: Nat;
-            details: Blob;
-            owner: Principal;
-            members: [(Principal, Text)];
-            projects: [Nat];
-        }>(0, Nat.equal, customNatHash);
-        private let userOrgs = HashMap.HashMap<Principal, [Nat]>(0, Principal.equal, Principal.hash);
+        private var organizations : [Organization] = [];
+        private var projects : [Project] = [];
+        private var nextProjectId : Nat = 0;
 
-        public func hasPermission(user: Principal, orgId: Nat, role: Text): async Bool {
-            switch (organizations.get(orgId)) {
-                case null false;
-                case (?org) {
-                    Array.find<(Principal, Text)>(org.members, func((member, memberRole)) {
-                        member == user and memberRole == role
-                    }) != null
-                }
+        private func findOrganization(id: Text) : ?Organization {
+            Array.find<Organization>(organizations, func(org) { org.id == id })
+        };
+
+        private func updateOrganization(newOrg: Organization) {
+            let buffer = Buffer.Buffer<Organization>(organizations.size());
+            for (org in organizations.vals()) {
+                if (org.id != newOrg.id) {
+                    buffer.add(org);
+                };
+            };
+            buffer.add(newOrg);
+            organizations := Buffer.toArray(buffer);
+        };
+
+        public func createOrganization(id: Text, name: Text, owner: Principal, details: ?Blob) : Result.Result<Organization, Text> {
+            switch (findOrganization(id)) {
+                case (?_) { #err("Organization ID already exists") };
+                case null {
+                    let newOrg : Organization = {
+                        id = id;
+                        name = name;
+                        owner = owner;
+                        members = [owner];
+                        created_at = Time.now();
+                        details = details;
+                    };
+
+                    let buffer = Buffer.Buffer<Organization>(organizations.size() + 1);
+                    for (org in organizations.vals()) {
+                        buffer.add(org);
+                    };
+                    buffer.add(newOrg);
+                    organizations := Buffer.toArray(buffer);
+
+                    #ok(newOrg)
+                };
             }
         };
 
-        public func createOrganization(caller: Principal, orgDetails: Blob): async Nat {
-            // Validate organization details first to fail fast
-            if (orgDetails.size() == 0) {
-                throw Error.reject("Organization details cannot be empty");
-            };
-
-            // Check for unique details using entries() iterator
-            label uniqueCheck for ((_, org) in organizations.entries()) {
-                if (org.details == orgDetails) {
-                    throw Error.reject("An organization with these details already exists");
-                    break uniqueCheck;
-                };
-            };
-
-            // Generate new organization ID
-            let orgId = nextOrgId;
-            nextOrgId += 1;
-
-            // Create and store organization in one step
-            organizations.put(orgId, {
-                id = orgId;
-                details = orgDetails;
-                owner = caller;
-                members = [(caller, "owner")];
-                projects = [];
-            });
-            
-            // Add to user's organizations if not already present
-            userOrgs.put(caller, [orgId]);
-            
-            orgId
-        };
-
-        public func getOrganizations(caller: Principal): async [Nat] {
-            switch (userOrgs.get(caller)) {
-                case null [];
-                case (?orgs) orgs;
-            }
-        };
-
-        public func addProject(orgId: Nat, caller: Principal, projectDetails: Blob): async Nat {
-            // 1. Authenticate caller by verifying organization exists
-            let org = switch (organizations.get(orgId)) {
-                case null throw Error.reject("Organization not found");
-                case (?o) o;
-            };
-            
-            // 2. Verify caller has admin permissions
-            if (not (await hasPermission(caller, orgId, "admin"))) {
-                throw Error.reject("Insufficient permissions");
-            };
-            
-            // 3. Validate project details
-            if (projectDetails.size() == 0) {
-                throw Error.reject("Project details cannot be empty");
-            };
-            
-            // 4. Generate unique project ID
-            let projectId = nextProjectId;
-            nextProjectId += 1;
-            
-            // 5. Store project data by updating organization
-            organizations.put(orgId, {
-                org with 
-                projects = Array.append(org.projects, [projectId])
-            });
-            
-            // 6. Return the project ID
-            projectId
-        };
-
-        public func editOrganization(_orgId: Nat, _updatedDetails: Blob, caller: Principal): async () {
-            // Verify the caller has edit permissions
-            let hasAdminPermission = await hasPermission(caller, _orgId, "admin");
-            if (not hasAdminPermission) {
-                throw Error.reject("Insufficient permissions");
-            };
-            
-            // Validate updatedDetails 
-            if (_updatedDetails.size() == 0) {
-                throw Error.reject("Invalid details");
-            };
-            
-            // Update the organization's details
-            switch (organizations.get(_orgId)) {
-                case null { throw Error.reject("Organization not found") };
-                case (?org) {
-                    let updatedOrg = { org with details = _updatedDetails };
-                    organizations.put(_orgId, updatedOrg);
-                };
-            };
-        };
-
-        public func deleteOrganization(_orgId: Nat, caller: Principal): async () {
-            // Verify the caller is the owner
-            switch (organizations.get(_orgId)) {
-                case null { throw Error.reject("Organization not found") };
+        public func addMemberToOrganization(orgId: Text, newMember: Principal, role: Blob, caller: Principal) : Result.Result<Organization, Text> {
+            switch (findOrganization(orgId)) {
+                case null { #err("Organization not found") };
                 case (?org) {
                     if (org.owner != caller) {
-                        throw Error.reject("Only the owner can delete the organization");
+                        return #err("Only the organization owner can add members");
                     };
-                    // Remove the organization and associated data
-                    ignore organizations.remove(_orgId);
-                    
-                    // Handle cascading deletions carefully (e.g., remove from userOrgs)
-                    for ((user, orgs) in userOrgs.entries()) {
-                        let updatedOrgs = Array.filter<Nat>(orgs, func(orgId) { orgId != _orgId });
-                        userOrgs.put(user, updatedOrgs);
-                    };
-                    
-                    // Ensure the function returns ()
-                    return ();
+
+                    let memberExists = Array.find<Principal>(org.members, func(m) { m == newMember });
+                    switch (memberExists) {
+                        case (?_) { #err("Member already exists in organization") };
+                        case null {
+                            let memberBuffer = Buffer.Buffer<Principal>(org.members.size() + 1);
+                            for (member in org.members.vals()) {
+                                memberBuffer.add(member);
+                            };
+                            memberBuffer.add(newMember);
+
+                            let updatedOrg : Organization = {
+                                id = org.id;
+                                name = org.name;
+                                owner = org.owner;
+                                members = Buffer.toArray(memberBuffer);
+                                created_at = org.created_at;
+                                details = org.details;
+                            };
+
+                            updateOrganization(updatedOrg);
+                            #ok(updatedOrg)
+                        };
+                    }
                 };
-            };
+            }
         };
 
-        public func addMember(_orgId: Nat, _userId: Principal, _role: Blob, caller: Principal): async () {
-            // Verify the caller has permission to add members
-            let hasAdminPermission = await hasPermission(caller, _orgId, "admin");
-            if (not hasAdminPermission) {
-                throw Error.reject("Insufficient permissions");
-            };
-            
-            // Update the organization's member list
-            switch (organizations.get(_orgId)) {
-                case null { throw Error.reject("Organization not found") };
+        public func removeMemberFromOrganization(orgId: Text, memberToRemove: Principal) : Result.Result<Organization, Text> {
+            switch (findOrganization(orgId)) {
+                case null { #err("Organization not found") };
                 case (?org) {
-                    let updatedMembers = Array.append<(Principal, Text)>(org.members, [(_userId, "member")]);
-                    let updatedOrg = { org with members = updatedMembers };
-                    organizations.put(_orgId, updatedOrg);
+                    if (org.owner == memberToRemove) {
+                        return #err("Cannot remove the owner from the organization");
+                    };
+
+                    let memberBuffer = Buffer.Buffer<Principal>(org.members.size());
+                    var memberFound = false;
+
+                    for (member in org.members.vals()) {
+                        if (member != memberToRemove) {
+                            memberBuffer.add(member);
+                        } else {
+                            memberFound := true;
+                        };
+                    };
+
+                    if (not memberFound) {
+                        return #err("Member not found in organization");
+                    };
+
+                    let updatedOrg : Organization = {
+                        id = org.id;
+                        name = org.name;
+                        owner = org.owner;
+                        members = Buffer.toArray(memberBuffer);
+                        created_at = org.created_at;
+                        details = org.details;
+                    };
+
+                    updateOrganization(updatedOrg);
+                    #ok(updatedOrg)
                 };
-            };
+            }
+        };
+
+        public func getOrganization(id: Text) : Result.Result<Organization, Text> {
+            switch (findOrganization(id)) {
+                case null { #err("Organization not found") };
+                case (?org) { #ok(org) };
+            }
+        };
+
+        public func getAllOrganizations() : [Organization] {
+            organizations
+        };
+
+        public func isMemberOfOrganization(orgId: Text, memberId: Principal) : Bool {
+            switch (findOrganization(orgId)) {
+                case null { false };
+                case (?org) {
+                    switch (Array.find<Principal>(org.members, func(m) { m == memberId })) {
+                        case null { false };
+                        case (?_) { true };
+                    }
+                };
+            }
+        };
+
+        public func updateOrganizationName(orgId: Text, newName: Text, caller: Principal) : Result.Result<Organization, Text> {
+            switch (findOrganization(orgId)) {
+                case null { #err("Organization not found") };
+                case (?org) {
+                    if (org.owner != caller) {
+                        return #err("Only the organization owner can update the name");
+                    };
+
+                    let updatedOrg : Organization = {
+                        id = org.id;
+                        name = newName;
+                        owner = org.owner;
+                        members = org.members;
+                        created_at = org.created_at;
+                        details = org.details;
+                    };
+
+                    updateOrganization(updatedOrg);
+                    #ok(updatedOrg)
+                };
+            }
+        };
+
+        public func addProject(orgId: Text, details: Blob, caller: Principal) : Result.Result<Project, Text> {
+            switch (findOrganization(orgId)) {
+                case null { #err("Organization not found") };
+                case (?org) {
+                    if (not isMemberOfOrganization(orgId, caller)) {
+                        return #err("Caller is not a member of the organization");
+                    };
+
+                    let newProject : Project = {
+                        id = nextProjectId;
+                        orgId = orgId;
+                        details = details;
+                        created_at = Time.now();
+                    };
+
+                    let buffer = Buffer.Buffer<Project>(projects.size() + 1);
+                    for (proj in projects.vals()) {
+                        buffer.add(proj);
+                    };
+                    buffer.add(newProject);
+                    projects := Buffer.toArray(buffer);
+                    nextProjectId += 1;
+
+                    #ok(newProject)
+                };
+            }
+        };
+
+        public func editOrganization(orgId: Text, newName: Text, newDetails: ?Blob, caller: Principal) : Result.Result<Organization, Text> {
+            switch (findOrganization(orgId)) {
+                case null { #err("Organization not found") };
+                case (?org) {
+                    if (org.owner != caller) {
+                        return #err("Only the organization owner can edit details");
+                    };
+
+                    let updatedOrg : Organization = {
+                        id = org.id;
+                        name = newName;
+                        owner = org.owner;
+                        members = org.members;
+                        created_at = org.created_at;
+                        details = newDetails;
+                    };
+
+                    updateOrganization(updatedOrg);
+                    #ok(updatedOrg)
+                };
+            }
+        };
+
+        public func deleteOrganization(orgId: Text, caller: Principal) : Result.Result<(), Text> {
+            switch (findOrganization(orgId)) {
+                case null { #err("Organization not found") };
+                case (?org) {
+                    if (org.owner != caller) {
+                        return #err("Only the organization owner can delete the organization");
+                    };
+
+                    let buffer = Buffer.Buffer<Organization>(organizations.size());
+                    for (existingOrg in organizations.vals()) {
+                        if (existingOrg.id != orgId) {
+                            buffer.add(existingOrg);
+                        };
+                    };
+                    organizations := Buffer.toArray(buffer);
+
+                    // Also delete associated projects
+                    let projBuffer = Buffer.Buffer<Project>(projects.size());
+                    for (proj in projects.vals()) {
+                        if (proj.orgId != orgId) {
+                            projBuffer.add(proj);
+                        };
+                    };
+                    projects := Buffer.toArray(projBuffer);
+
+                    #ok(())
+                };
+            }
+        };
+
+        public func getOrganizationProjects(orgId: Text) : [Project] {
+            Array.filter<Project>(
+                projects,
+                func(proj) { proj.orgId == orgId }
+            )
+        };
+
+        public func getOrganizationsForUser(userId: Principal) : [Organization] {
+            Array.filter<Organization>(
+                organizations,
+                func(org) {
+                    Array.find<Principal>(org.members, func(m) { m == userId }) != null
+                }
+            )
         };
     };
 };
