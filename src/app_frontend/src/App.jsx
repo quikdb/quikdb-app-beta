@@ -1,29 +1,19 @@
 import { useState } from 'react';
-import { app_backend } from 'declarations/app_backend';
+// import { app_backend } from 'declarations/app_backend';
 
 function App() {
-  const [greeting, setGreeting] = useState('');
-
-  function handleSubmit(event) {
-    event.preventDefault();
-    const name = event.target.elements.name.value;
-    app_backend.greet(name).then((greeting) => {
-      setGreeting(greeting);
-    });
-    return false;
-  }
 
   return (
-    <main>
-      <img src="/logo2.svg" alt="DFINITY logo" />
-      <br />
-      <br />
-      <form action="#" onSubmit={handleSubmit}>
-        <label htmlFor="name">Enter your name: &nbsp;</label>
-        <input id="name" alt="Name" type="text" />
-        <button type="submit">Click Me!</button>
-      </form>
-      <section id="greeting">{greeting}</section>
+    <main className='bg-blacko text-white min-h-screen p-10 py-7'>
+      <header>
+        <p className='text-gradient'>quikdb</p>
+      </header>
+      <div className='container mx-auto p-4'>
+        <div className='text-center'>
+          <p>Create an account</p>
+          <p className='text-sm font-light text-gray-200'>Enter your email to sign up for this app</p>
+        </div>
+      </div>
     </main>
   );
 }
