@@ -1,5 +1,7 @@
 import { useState } from 'react';
 // import { app_backend } from 'declarations/app_backend';
+import { Input } from "@/components/ui/input";
+import { Card } from "@/components/ui/card";  
 
 function App() {
 
@@ -13,6 +15,7 @@ function App() {
           <p>Create an account</p>
           <p className='text-sm font-light text-gray-200'>Enter your email to sign up for this app</p>
         </div>
+      <Input />
       </div>
     </main>
   );
