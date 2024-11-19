@@ -2,7 +2,7 @@ import DashHeader from "@/components/DashHeader";
 import { Button } from "@/components/ui/button";
 import { PlusIcon } from "lucide-react";
 
-const Organizations = () => {
+const Dashboard = () => {
 
     return (
         <div className="max-md:mt-5 mb-10 p-10 min-h-screen">
@@ -16,7 +16,7 @@ const Organizations = () => {
                     </div>
                     <Button className="bg-gradient w-fit text-[#0F1407]">
                         <PlusIcon className="text-white border border-dotted rounded-lg" />
-                        New Organization
+                        New Project
                     </Button>
                 </div>
             </div>
@@ -24,4 +24,4 @@ const Organizations = () => {
     );
 };
 
-export default Organizations;
+export default Dashboard;

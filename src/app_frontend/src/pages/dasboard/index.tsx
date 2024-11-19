@@ -1,10 +1,10 @@
-import OrgSidebar from "@/components/OrgSidebar";
+import Sidebar from "@/components/Sidebar";
 import { Outlet } from "react-router-dom";
 
-const Orgs = () => {
+const Dash = () => {
   return (
     <div className="max-md:px-4 max-md:py-3 min-h-screen">
-      <OrgSidebar />
+      <Sidebar />
       <div className="ml-[20%] max-lg:m-0">
         <Outlet />
       </div>
@@ -12,4 +12,4 @@ const Orgs = () => {
   );
 };
 
-export default Orgs;
+export default Dash;

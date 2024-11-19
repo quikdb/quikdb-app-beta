@@ -3,8 +3,10 @@ import { Toaster } from "react-hot-toast";
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 // import { app_backend } from 'declarations/app_backend';
 import Onboarding from './pages/onboarding';
-import Dash from "./pages/organization";
 import Organizations from "./pages/organization/Organizations";
+import Orgs from "./pages/organization";
+import Dashboard from "./pages/dasboard/Dashboard";
+import Dash from "./pages/dasboard";
 
 function App() {
   const router = createBrowserRouter([
@@ -14,11 +16,25 @@ function App() {
     },
     {
       path: "organizations",
-      element: <Dash />,
+      element: <Orgs />,
       children: [
         {
           path: "",
           element: <Organizations />,
+        },
+        // {
+        //   path: "new-record",
+        //   element: <NewRecord />,
+        // },
+      ],
+    },
+    {
+      path: "dashboard",
+      element: <Dash />,
+      children: [
+        {
+          path: "",
+          element: <Dashboard />,
         },
         // {
         //   path: "new-record",
@@ -33,7 +49,7 @@ function App() {
   ]);
 
   return (
-    <div className="bg-blacko text-white h-screen">
+    <div className="bg-blacko text-white h-screen font-satoshi_regular">
       <RouterProvider router={router} />
       <Toaster />
     </div>
