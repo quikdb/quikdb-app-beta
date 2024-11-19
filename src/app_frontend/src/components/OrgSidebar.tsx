@@ -1,22 +1,20 @@
 import { Link } from 'react-router-dom';
-import { Button } from './ui/button';
-import { BarChartIcon, BookmarkFilledIcon, Crosshair2Icon, DashboardIcon, FileTextIcon, GearIcon, ListBulletIcon, PersonIcon } from '@radix-ui/react-icons';
-import { HeadphonesIcon, LogOutIcon } from 'lucide-react';
+import { BookmarkFilledIcon, ColumnsIcon, DashboardIcon, FileTextIcon, GearIcon } from '@radix-ui/react-icons';
 
 const OrgSidebar = () => {
 
     const navigation = [
         { name: 'Overview', to: '', icon: <DashboardIcon /> },
-        { name: 'Organizations', to: 'new-record', icon: <FileTextIcon /> },
-        { name: 'Invitations', to: 'manage-staff', icon: <PersonIcon /> },
-        { name: 'Documentation', to: 'notifications', icon: <ListBulletIcon /> },
-        { name: 'Settings', to: 'notifications', icon: <ListBulletIcon /> },
+        { name: 'Organizations', to: 'new-record', icon: <ColumnsIcon /> },
+        { name: 'Invitations', to: 'manage-staff', icon: <BookmarkFilledIcon /> },
+        { name: 'Documentation', to: 'notifications', icon: <FileTextIcon /> },
+        { name: 'Settings', to: 'notifications', icon: <GearIcon /> },
     ].filter(Boolean);
 
     return (
         <div className='bg-blackoff w-[18%] border-r-2 border-r-[#1B1C1F] fixed hidden lg:flex flex-col items-center justify-start p-10 py-20 min-h-screen h-full'>
             <div className="flex flex-col h-full">
-                    <div className="text-gradient text-xl pl-10">quikDB</div>
+                    <Link to="/" className="font-satoshi_medium text-gradient text-2xl pl-10">quikDB</Link>
                     <div className='flex flex-col gap-2 mt-16'>
                         {navigation.map((item) => {
                             return (
