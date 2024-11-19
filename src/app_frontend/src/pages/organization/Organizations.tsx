@@ -1,6 +1,5 @@
 import DashHeader from "@/components/DashHeader";
 import { Button } from "@/components/ui/button";
-import { PlusIcon } from "lucide-react";
 
 const Organizations = () => {
 
@@ -8,16 +7,21 @@ const Organizations = () => {
         <div className="max-md:mt-5 mb-10 p-10 min-h-screen">
             <DashHeader />
             <div className="mt-10">
-                <p className="text-xl">Welcome Oluwatimileyin 👋</p>
-                <div className="flex flex-col justify-center items-center gap-10 h-[50vh]">
-                    <div className="flex flex-col items-center">
-                        <img src="/images/empty_box.png" alt="empty_box" />
-                        <p className="text-sm font-light text-gray-600">No Project Available . Create a new project to get stated</p>
+                <div className="flex justify-between">
+                    <div className="flex flex-col gap-1">
+                        <p className="font-satoshi_medium text-3xl">Organizations</p>
+                        <p className="font-satoshi_light text-base text-gray-400">Unlock API Access with Personal Tokens</p>
                     </div>
-                    <Button className="bg-gradient w-fit text-[#0F1407]">
-                        <PlusIcon className="text-white border border-dotted rounded-lg" />
-                        New Organization
+                    <Button size="lg" className="font-satoshi_medium bg-gradient w-fit text-base px-4 text-[#0F1407]">
+                        Create new organization
                     </Button>
+                </div>
+                <div className="bg-blackoff rounded-lg mt-7 flex flex-col justify-center items-center gap-10 h-[70vh]">
+                    <div className="flex flex-col items-center gap-2">
+                        <img src="/images/empty_org.png" alt="empty_box" />
+                        <p className="text-base mb-[-5px]" >No Organization Available</p>
+                        <p className="text-sm font-satoshi_light text-gray-400">List of organizations will appear here</p>
+                    </div>
                 </div>
             </div>
         </div>
