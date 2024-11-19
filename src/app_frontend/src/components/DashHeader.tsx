@@ -1,6 +1,5 @@
 import {
-    ArrowDown,
-    ArrowDownIcon,
+    ChevronDown,
     GlobeIcon,
     User,
 } from "lucide-react"
@@ -20,7 +19,7 @@ const DashHeader = () => {
             <div className="flex justify-between pb-7 border-b border-b-[#1B1C1F]">
                 <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="bg-transparent"><GlobeIcon /> Oluwatimileyin's Org <ArrowDownIcon /></Button>
+                        <Button variant="outline" className="bg-transparent"><GlobeIcon /> Oluwatimileyin's Org <ChevronDown /></Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent className="w-56">
                         <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -38,7 +37,7 @@ const DashHeader = () => {
                     </div>
                     <div className="flex gap-3">
                         <img src="/images/user.png" alt="user" />
-                        <p className="flex items-center">Oluwatimileyin <ArrowDown /></p>
+                        <p className="flex items-center">Oluwatimileyin <ChevronDown /></p>
                     </div>
                 </div>
 
