@@ -11,7 +11,7 @@ export default {
   	extend: {
   		colors: {
   			blacko: '#030500',
-  			blacklue: 'green',
+  			blackoff: '#18171C',
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {

@@ -1,6 +1,5 @@
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import toast from 'react-hot-toast'
+import { Link } from 'react-router-dom'
 
 const Onboarding = () => {
     return (
@@ -8,13 +7,9 @@ const Onboarding = () => {
             <header>
                 <p className='text-gradient'>quikdb</p>
             </header>
-            <div className='container mx-auto p-4'>
-                <div className='text-center'>
-                    <p>Create an account</p>
-                    <p className='text-sm font-light text-gray-200'>Enter your email to sign up for this app</p>
-                </div>
-                <Input />
-            </div>
+            <Link to="organizations" className='container mt-20'>
+                <Button className='bg-gradient'>Go to Organizations</Button>
+            </Link>
         </main>
     )
 }
