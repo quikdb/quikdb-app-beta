@@ -9,7 +9,7 @@ const Projects = () => {
                     <p className="font-satoshi_medium text-3xl">Projects</p>
                     <p className="font-satoshi_light text-base text-gray-400">Real-time overview of your listed projects</p>
                 </div>
-                <Button size="lg" className="font-satoshi_medium bg-gradient w-fit text-base px-4 text-[#0F1407]">
+                <Button size="lg" className="bg-gradient w-fit px-4 text-[#0F1407]">
                     List new project
                 </Button>
             </div>
