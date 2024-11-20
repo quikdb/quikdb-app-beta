@@ -156,7 +156,7 @@ export const columns: ColumnDef<Project>[] = [
     },
 ]
 
-export function DataTableDemo() {
+export function ProjectTable() {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []

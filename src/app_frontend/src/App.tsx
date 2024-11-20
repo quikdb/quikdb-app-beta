@@ -8,8 +8,8 @@ import Orgs from "./pages/organization";
 import Dashboard from "./pages/dasboard/Dashboard";
 import Dash from "./pages/dasboard";
 import Projects from "./pages/dasboard/Projects";
-import Signup from "./pages/signup";
-import Login from "./pages/login";
+import Signup from "./pages/onboarding/signup";
+import Login from "./pages/onboarding/login";
 
 function App() {
   const router = createBrowserRouter([
