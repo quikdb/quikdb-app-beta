@@ -9,6 +9,7 @@ import Dashboard from "./pages/dasboard/Dashboard";
 import Dash from "./pages/dasboard";
 import Projects from "./pages/dasboard/Projects";
 import Documentation from "./pages/organization/Documentation";
+import Overview from "./pages/organization/Overview";
 
 function App() {
   const router = createBrowserRouter([
@@ -22,6 +23,10 @@ function App() {
       children: [
         {
           path: "",
+          element: <Overview />,
+        },
+        {
+          path: "organizations",
           element: <Organizations />,
         },
         {
