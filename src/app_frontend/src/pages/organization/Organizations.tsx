@@ -1,8 +1,11 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell, TableCaption } from '@/components/ui/table';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { useNavigate } from 'react-router-dom';
 
 const Organizations = () => {
+  const navigate = useNavigate();
+
   // Example data
   const organizations = [
     {
@@ -46,7 +49,7 @@ const Organizations = () => {
           <p className='font-satoshi_medium text-3xl'>Organizations</p>
           <p className='font-satoshi_light text-base text-gray-400'>Unlock API Access with Personal Tokens</p>
         </div>
-        <Button size='lg' className='bg-gradient w-fit px-4 text-[#0F1407]'>
+        <Button size='lg' className='bg-gradient w-fit px-4 text-[#0F1407]' onClick={() => navigate('/organizations/create-organization')}>
           Create new organization
         </Button>
       </div>
