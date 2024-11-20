@@ -8,12 +8,22 @@ import Orgs from "./pages/organization";
 import Dashboard from "./pages/dasboard/Dashboard";
 import Dash from "./pages/dasboard";
 import Projects from "./pages/dasboard/Projects";
+import Signup from "./pages/signup";
+import Login from "./pages/login";
 
 function App() {
   const router = createBrowserRouter([
     {
       path: "/",
       element: <Onboarding />,
+    },
+    {
+      path: "/signup",
+      element: <Signup />,
+    },
+    {
+      path: "/login",
+      element: <Login />,
     },
     {
       path: "organizations",
