@@ -7,13 +7,13 @@ const Sidebar = () => {
 
     const navigation = [
         { name: 'Overview', to: '', icon: <DashboardIcon /> },
-        { name: 'Projects', to: 'new-record', icon: <FileTextIcon /> },
-        { name: 'User Management', to: 'manage-staff', icon: <PersonIcon /> },
-        { name: 'Audit Logs', to: 'notifications', icon: <ListBulletIcon /> },
-        { name: 'Analytics', to: 'notifications', icon: <BarChartIcon /> },
-        { name: 'Access Token', to: 'notifications', icon: <Crosshair2Icon /> },
-        { name: 'Rewards', to: 'notifications', icon: <BookmarkFilledIcon /> },
-        { name: 'Settings', to: 'notifications', icon: <GearIcon /> },
+        { name: 'Projects', to: 'projects', icon: <FileTextIcon /> },
+        { name: 'User Management', to: '', icon: <PersonIcon /> },
+        { name: 'Audit Logs', to: '', icon: <ListBulletIcon /> },
+        { name: 'Analytics', to: '', icon: <BarChartIcon /> },
+        { name: 'Access Token', to: '', icon: <Crosshair2Icon /> },
+        { name: 'Rewards', to: '', icon: <BookmarkFilledIcon /> },
+        { name: 'Settings', to: '', icon: <GearIcon /> },
     ].filter(Boolean);
 
     return (

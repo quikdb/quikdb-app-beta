@@ -7,6 +7,7 @@ import Organizations from "./pages/organization/Organizations";
 import Orgs from "./pages/organization";
 import Dashboard from "./pages/dasboard/Dashboard";
 import Dash from "./pages/dasboard";
+import Projects from "./pages/dasboard/Projects";
 
 function App() {
   const router = createBrowserRouter([
@@ -36,10 +37,10 @@ function App() {
           path: "",
           element: <Dashboard />,
         },
-        // {
-        //   path: "new-record",
-        //   element: <NewRecord />,
-        // },
+        {
+          path: "projects",
+          element: <Projects />,
+        },
       ],
     },
     {
