@@ -28,7 +28,7 @@ const Sidebar = () => {
                                     key={item.name}
                                     to={item.to}
                                     className={`flex items-center gap-3 rounded-lg py-2 px-8 text-sm leading-7
-                                ${location.pathname === `dashboard/${item.to}` ? 'bg-blue-800' : 'hover:bg-blue-800'}`}
+                                ${location.pathname === `dashboard/${item.to}` ? 'bg-gradient' : 'hover:bg-gradient'}`}
                                 >
                                     {item.icon}
                                     {item.name}
