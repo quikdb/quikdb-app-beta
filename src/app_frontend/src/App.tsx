@@ -8,6 +8,7 @@ import Orgs from "./pages/organization";
 import Dashboard from "./pages/dasboard/Dashboard";
 import Dash from "./pages/dasboard";
 import Projects from "./pages/dasboard/Projects";
+import Documentation from "./pages/organization/Documentation";
 
 function App() {
   const router = createBrowserRouter([
@@ -22,6 +23,10 @@ function App() {
         {
           path: "",
           element: <Organizations />,
+        },
+        {
+          path: "documentation",
+          element: <Documentation />,
         },
         // {
         //   path: "new-record",

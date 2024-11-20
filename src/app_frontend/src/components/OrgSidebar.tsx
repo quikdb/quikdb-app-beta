@@ -5,10 +5,10 @@ const OrgSidebar = () => {
 
     const navigation = [
         { name: 'Overview', to: '', icon: <DashboardIcon /> },
-        { name: 'Organizations', to: 'new-record', icon: <ColumnsIcon /> },
-        { name: 'Invitations', to: 'manage-staff', icon: <BookmarkFilledIcon /> },
-        { name: 'Documentation', to: 'notifications', icon: <FileTextIcon /> },
-        { name: 'Settings', to: 'notifications', icon: <GearIcon /> },
+        { name: 'Organizations', to: 'organizations', icon: <ColumnsIcon /> },
+        { name: 'Invitations', to: 'invitations', icon: <BookmarkFilledIcon /> },
+        { name: 'Documentation', to: 'documentation', icon: <FileTextIcon /> },
+        { name: 'Settings', to: 'settings', icon: <GearIcon /> },
     ].filter(Boolean);
 
     return (
