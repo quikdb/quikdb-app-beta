@@ -8,6 +8,12 @@ const Onboarding = () => {
                 <p className='text-gradient'>quikdb</p>
             </header>
             <div className='flex flex-col mt-20 gap-7'>
+                <Link to="/signup" className='container'>
+                    <Button className='bg-gradient'>Go to Signup</Button>
+                </Link>
+                <Link to="/login" className='container'>
+                    <Button className='bg-gradient'>Go to Login</Button>
+                </Link>
                 <Link to="/organizations" className='container'>
                     <Button className='bg-gradient'>Go to Organizations</Button>
                 </Link>

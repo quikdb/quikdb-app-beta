@@ -11,12 +11,22 @@ import Projects from "./pages/dasboard/Projects";
 import Documentation from "./pages/organization/Documentation";
 import Overview from "./pages/organization/Overview";
 import NewOrganization from "./pages/organization/NewOrganization";
+import Signup from "./pages/signup";
+import Login from "./pages/login";
 
 function App() {
   const router = createBrowserRouter([
     {
       path: "/",
       element: <Onboarding />,
+    },
+    {
+      path: "/signup",
+      element: <Signup />,
+    },
+    {
+      path: "/login",
+      element: <Login />,
     },
     {
       path: "organizations",
