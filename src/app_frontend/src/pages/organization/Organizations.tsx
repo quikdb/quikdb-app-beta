@@ -1,11 +1,8 @@
-import DashHeader from "@/components/DashHeader";
 import { Button } from "@/components/ui/button";
 
 const Organizations = () => {
 
     return (
-        <div className="max-md:mt-5 mb-10 p-10 min-h-screen">
-            <DashHeader />
             <div className="mt-10">
                 <div className="flex justify-between">
                     <div className="flex flex-col gap-1">
@@ -24,7 +21,6 @@ const Organizations = () => {
                     </div>
                 </div>
             </div>
-        </div>
     );
 };
 
