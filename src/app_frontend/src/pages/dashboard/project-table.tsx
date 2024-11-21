@@ -32,6 +32,7 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { Link } from "react-router-dom"
 
 const data: Project[] = [
     {
@@ -285,13 +286,15 @@ export function ProjectTable() {
                     >
                         Previous
                     </Button>
-                    <Button
-                        size="sm"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                    >
-                        Next
-                    </Button>
+                    <Link to="/dashboard/project_1" >
+                        <Button
+                            size="sm"
+                            onClick={() => table.nextPage()}
+                            disabled={!table.getCanNextPage()}
+                        >
+                            Next
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </div>
