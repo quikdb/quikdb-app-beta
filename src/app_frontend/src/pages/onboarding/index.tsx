@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 const Onboarding = () => {
     return (
-        <main className='min-h-screen p-10 py-7'>
+        <main className='min-h-screen px-20 py-7'>
             <header>
                 <p className='text-gradient'>quikdb</p>
             </header>

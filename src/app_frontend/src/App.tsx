@@ -5,11 +5,13 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Onboarding from './pages/onboarding';
 import Organizations from "./pages/organization/Organizations";
 import Orgs from "./pages/organization";
-import Dashboard from "./pages/dasboard/Dashboard";
-import Dash from "./pages/dasboard";
-import Projects from "./pages/dasboard/Projects";
-import Signup from "./pages/signup";
-import Login from "./pages/login";
+import Dashboard from "./pages/dashboard/Dashboard";
+import Dash from "./pages/dashboard";
+import Projects from "./pages/dashboard/Projects";
+import Signup from "./pages/onboarding/signup";
+import Login from "./pages/onboarding/login";
+import Project from "./pages/dashboard/Project";
+import AddCollaborators from "./pages/dashboard/AddCollaborators";
 
 function App() {
   const router = createBrowserRouter([
@@ -51,6 +53,14 @@ function App() {
           path: "projects",
           element: <Projects />,
         },
+        {
+          path: ":projectId",
+          element: <Project />,
+        },
+        {
+          path: "add_collaborators",
+          element: <AddCollaborators />,
+        }
       ],
     },
     {

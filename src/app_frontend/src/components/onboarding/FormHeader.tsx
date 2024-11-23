@@ -1,4 +1,5 @@
 import React from 'react'
+import { Link } from 'react-router-dom';
 
 interface FormHeaderProps {
   showLogo: boolean;
@@ -11,7 +12,7 @@ const FormHeader: React.FC<FormHeaderProps> = ({title, description, showLogo}) =
   <div className='flex flex-col w-full max-w-screen-2xl gap-y-16  '>
     { showLogo &&
       <header>
-        <p className='text-gradient'>quikdb</p>
+        <Link to="/" className='text-gradient'>quikdb</Link>
       </header>
     }
     <div className='flex flex-col w-full items-center justify-center'>
