@@ -70,7 +70,7 @@ function App() {
   ]);
 
   return (
-    <div className="bg-blacko text-white h-screen font-satoshi_regular">
+    <div className="bg-blacko text-white h-screen font-satoshi_regular text-base">
       <RouterProvider router={router} />
       <Toaster />
     </div>
