@@ -23,7 +23,7 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/onboarding"
 import {
     Table,
     TableBody,
@@ -131,7 +131,7 @@ export const columns: ColumnDef<Database>[] = [
 
             return (
                 <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                    <AlertDialogTrigger asChild className="cursor-pointer">
                         <Trash2Icon size={18} />
                     </AlertDialogTrigger>
                     <AlertDialogContent className="bg-[#111015] text-white border-[#242527] font-satoshi_regular">

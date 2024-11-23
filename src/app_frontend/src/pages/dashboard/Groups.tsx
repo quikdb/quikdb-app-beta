@@ -7,7 +7,7 @@ import {
     AccordionItem,
     AccordionTrigger,
 } from "@/components/ui/accordion"
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/onboarding"
 import { Label } from "@/components/ui/label"
 import { EllipsisVertical, Search } from "lucide-react"
 import { DatabaseTable } from "./components/database-table"
@@ -54,11 +54,11 @@ const databases = [
 
 const Groups = () => {
     return (
-        <Card className="bg-[#151418] text-white border-[#242527] p-10 px-5 flex gap-10">
+        <Card className="bg-[#151418] text-white border-[#242527] p-10 px-5 flex gap-10 mt-7">
             <div className="flex flex-col gap-5 pr-10 border-r border-r-[#242527]">
                 <CreateDatabase />
                 <div className="flex relative">
-                    <Label className="absolute top-3 left-4 text-gray-400"><Search size={14} /></Label>
+                    <Label className="absolute top-5 left-4 text-gray-400"><Search size={14} /></Label>
                     <Input placeholder="Search by DB name..." className="pl-10" />
                 </div>
 

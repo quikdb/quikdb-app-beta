@@ -125,7 +125,7 @@ export const columns: ColumnDef<Database>[] = [
             const collaborators = row.original
             return (
                 <div>
-                    <div>{collaborators.name}</div>
+                    <div className="text-base">{collaborators.name}</div>
                     <div className="text-gray-400 text-sm mt-1">{collaborators.email}</div>
                 </div>
             )
@@ -163,7 +163,7 @@ export const columns: ColumnDef<Database>[] = [
 
             return (
                 <AlertDialog>
-                    <AlertDialogTrigger asChild>
+                    <AlertDialogTrigger asChild className="cursor-pointer">
                         <Trash2Icon size={18} />
                     </AlertDialogTrigger>
                     <AlertDialogContent className="bg-[#111015] text-white border-[#242527] font-satoshi_regular">

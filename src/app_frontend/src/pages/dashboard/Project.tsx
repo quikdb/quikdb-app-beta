@@ -1,5 +1,4 @@
 // import { useParams } from 'react-router-dom';
-
 import {
   Tabs,
   TabsContent,
@@ -8,6 +7,7 @@ import {
 } from "@/components/ui/tabs"
 import Groups from "./Groups";
 import Collaborators from "./Collaborators";
+import Query from "./Query";
 
 function Project() {
   // const { projectId } = useParams();
@@ -20,7 +20,7 @@ function Project() {
         <TabsList className="grid w-1/3 grid-cols-3 bg-transparent text-gray-400 font-satoshi_medium border-none border-b border-b-[#242527] gap-">
           <TabsTrigger value="groups">Groups</TabsTrigger>
           <TabsTrigger value="collaborators">Project Collaborators</TabsTrigger>
-          <TabsTrigger value="connect">Connect</TabsTrigger>
+          <TabsTrigger value="query">Query</TabsTrigger>
         </TabsList>
         <TabsContent value="groups" className="bg-[#151418] text-white">
           <Groups />
@@ -28,8 +28,8 @@ function Project() {
         <TabsContent value="collaborators">
           <Collaborators />
         </TabsContent>
-        <TabsContent value="connect">
-          <Groups />
+        <TabsContent value="query">
+          <Query />
         </TabsContent>
       </Tabs>
     </div>
