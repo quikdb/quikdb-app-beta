@@ -7,6 +7,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import Groups from "./Groups";
+import Collaborators from "./Collaborators";
 
 function Project() {
   // const { projectId } = useParams();
@@ -15,7 +16,6 @@ function Project() {
     <div className='mt-10'>
       <p className="mb-7 text-base">Project / <span className="text-[#72F5DD]">UrbanLifeSuite</span></p>
       <p>UrbanLifeSuite</p>
-      {/* Add more project details here */}
       <Tabs defaultValue="groups" className="mt-5">
         <TabsList className="grid w-1/3 grid-cols-3 bg-transparent text-gray-400 font-satoshi_medium border-none border-b border-b-[#242527] gap-">
           <TabsTrigger value="groups">Groups</TabsTrigger>
@@ -26,7 +26,7 @@ function Project() {
           <Groups />
         </TabsContent>
         <TabsContent value="collaborators">
-          <Groups />
+          <Collaborators />
         </TabsContent>
         <TabsContent value="connect">
           <Groups />

@@ -1,17 +1,18 @@
 import {
     Card,
 } from "@/components/ui/card"
-// import {
-//     Accordion,
-//     AccordionContent,
-//     AccordionItem,
-//     AccordionTrigger,
-// } from "@/components/ui/accordion"
+import {
+    Accordion,
+    AccordionContent,
+    AccordionItem,
+    AccordionTrigger,
+} from "@/components/ui/accordion"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Button } from "@/components/ui/button"
-import { EllipsisVertical, PlusIcon, Search } from "lucide-react"
-import { ProjectTable } from "./project-table"
+import { EllipsisVertical, Search } from "lucide-react"
+import { DatabaseTable } from "./components/database-table"
+import CreateDatabase from "./components/CreateDatabaseForm"
+import AddDataGroup from "./components/AddDataGroupForm"
 
 const databases = [
     {
@@ -19,24 +20,35 @@ const databases = [
         name: "UrbanLifeSuite",
         deadline: "12/12/2021",
         team: "Team 1",
+        subdata: ["Houses", "Banks", "Transactions", "Clients"],
     },
     {
         id: 2,
-        name: "UrbanLifeSuite",
+        name: "RealEstate",
         deadline: "12/12/2021",
         team: "Team 1",
+        subdata: ["Houses", "Banks", "Transactions", "Clients"],
     },
     {
         id: 3,
-        name: "UrbanLifeSuite",
+        name: "ECommerce",
         deadline: "12/12/2021",
         team: "Team 1",
+        subdata: ["Houses", "Banks", "Transactions", "Clients"],
     },
     {
         id: 4,
-        name: "UrbanLifeSuite",
+        name: "Education",
         deadline: "12/12/2021",
         team: "Team 1",
+        subdata: ["Houses", "Banks", "Transactions", "Clients"],
+    },
+    {
+        id: 5,
+        name: "Travel",
+        deadline: "12/12/2021",
+        team: "Team 1",
+        subdata: ["Houses", "Banks", "Transactions", "Clients"],
     },
 ]
 
@@ -44,37 +56,30 @@ const Groups = () => {
     return (
         <Card className="bg-[#151418] text-white border-[#242527] p-10 px-5 flex gap-10">
             <div className="flex flex-col gap-5 pr-10 border-r border-r-[#242527]">
-                <Button className="bg-gradient w-fit px-4 text-[#0F1407]">
-                    Create Database
-                </Button>
+                <CreateDatabase />
                 <div className="flex relative">
                     <Label className="absolute top-3 left-4 text-gray-400"><Search size={14} /></Label>
                     <Input placeholder="Search by DB name..." className="pl-10" />
                 </div>
 
-                {/* <Accordion type="single" collapsible className="w-full">
-                    <AccordionItem value="item-1">
-                        <AccordionTrigger className="flex gap-10">
-                            <p className="text-base">database.name</p>
-                            <EllipsisVertical size={16} className="text-gray-" />
-                        </AccordionTrigger>
-                        <AccordionContent>
-                            Yes. It&apos;s animated by default, but you can disable it if you
-                            prefer.
-                        </AccordionContent>
-                    </AccordionItem>
-                </Accordion> */}
-
-                {databases.map((database) => (
-                    <div className="flex items-center gap-14">
-                        <div className="flex gap-2">
-                            <img src="/images/arrow-right.png" alt="arrow-right" />
-                            <p className="text-base">{database.name}</p>
-                        </div>
-                        <EllipsisVertical size={16} className="text-gray-" />
-                    </div>
-                )
-                )}
+                <Accordion type="single" collapsible className="w-full">
+                    {databases.map((database, index) => (
+                        <AccordionItem value={`item-${index}`}>
+                            <AccordionTrigger>
+                                <div key={index} className="flex items-center justify-between w-[14vw]">
+                                    <p className="text-base">{database.name}</p>
+                                    <EllipsisVertical size={16} className="text-gray-" />
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="w-full flex flex-col gap-3 pl-10">
+                                {database.subdata.map((subdata, index) => (
+                                    <p key={index} className="text-sm">{subdata}</p>
+                                ))}
+                            </AccordionContent>
+                        </AccordionItem>
+                    )
+                    )}
+                </Accordion>
             </div>
 
             <div className="w-full">
@@ -83,14 +88,10 @@ const Groups = () => {
                         <p className="font-satoshi_medium text-xl">Organizations</p>
                         <p className="font-satoshi_light text-xs text-gray-400">Unlock API Access with Personal Tokens</p>
                     </div>
-                    <Button variant="outline" className="font-satoshi_medium borde border-[#8A46FF]/60 px-4 w-fit text-gradient">
-                        <PlusIcon className="text-gradient border border-[#8A46FF] border-dotted rounded-lg" />
-                        Add Data Group
-                    </Button>
+                    <AddDataGroup />
                 </div>
-                <ProjectTable />
+                <DatabaseTable />
             </div>
-
         </Card>
     )
 }

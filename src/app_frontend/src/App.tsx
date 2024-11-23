@@ -11,6 +11,7 @@ import Projects from "./pages/dashboard/Projects";
 import Signup from "./pages/onboarding/signup";
 import Login from "./pages/onboarding/login";
 import Project from "./pages/dashboard/Project";
+import AddCollaborators from "./pages/dashboard/AddCollaborators";
 
 function App() {
   const router = createBrowserRouter([
@@ -56,6 +57,10 @@ function App() {
           path: ":projectId",
           element: <Project />,
         },
+        {
+          path: "add_collaborators",
+          element: <AddCollaborators />,
+        }
       ],
     },
     {
