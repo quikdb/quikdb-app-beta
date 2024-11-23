@@ -1,5 +1,4 @@
 // import { useParams } from 'react-router-dom';
-
 import {
   Tabs,
   TabsContent,
@@ -8,6 +7,7 @@ import {
 } from "@/components/ui/tabs"
 import Groups from "./Groups";
 import Collaborators from "./Collaborators";
+import Query from "./Query";
 
 function Project() {
   // const { projectId } = useParams();
@@ -29,7 +29,7 @@ function Project() {
           <Collaborators />
         </TabsContent>
         <TabsContent value="query">
-          <Groups />
+          <Query />
         </TabsContent>
       </Tabs>
     </div>

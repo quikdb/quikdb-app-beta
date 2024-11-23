@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/onboarding"
 import { ArrowLeftCircle } from "lucide-react"
 import { useNavigate } from "react-router-dom"
 
@@ -60,10 +60,10 @@ const AddCollaborators = () => {
                 </div>
 
                 <div className="flex gap-4">
-                    <Button className="bg-gradient w-fit px-4 text-[#0F1407]">
+                    <Button size="lg" className="bg-gradient w-fit px-4 text-[#0F1407]">
                         Add
                     </Button>
-                    <Button variant="outline" className="bg-transparent text-gradient w-fit px-4 border-[#242527]">
+                    <Button size="lg" variant="outline" className="bg-transparent text-gradient w-fit px-4 border-[#242527]">
                         Cancel
                     </Button>
                 </div>
