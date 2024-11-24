@@ -13,6 +13,8 @@ import Overview from "./pages/organization/Overview";
 import NewOrganization from "./pages/organization/NewOrganization";
 import Signup from "./pages/signup";
 import Login from "./pages/login";
+import Settings from "./pages/organization/Settings";
+import ListOrganizations from "./pages/organization/ListOrganizations";
 
 function App() {
   const router = createBrowserRouter([
@@ -41,6 +43,10 @@ function App() {
           element: <Organizations />,
         },
         {
+          path: "list-organizations",
+          element: <ListOrganizations />,
+        },
+        {
           path: "create-organization",
           element: <NewOrganization />,
         },
@@ -48,6 +54,12 @@ function App() {
           path: "documentation",
           element: <Documentation />,
         },
+        
+        {
+          path: "settings",
+          element: <Settings />,
+        },
+
         // {
         //   path: "new-record",
         //   element: <NewRecord />,
