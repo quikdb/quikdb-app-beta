@@ -13,7 +13,7 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ChevronDown } from "lucide-react"
+import { ChevronDown, Trash2Icon } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
@@ -23,7 +23,7 @@ import {
     DropdownMenuContent,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
+import { Input } from "@/components/onboarding"
 import {
     Table,
     TableBody,
@@ -32,68 +32,57 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Link } from "react-router-dom"
 
-const data: Project[] = [
+const data: Database[] = [
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        id: "5hgkg57",
+        document: "{ id”:763937292837, “Location”;”New York, NY”, “Price”:”850,000” “Year built”:”1993”, “...” }",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        id: "5hgkg57",
+        document: "{ id”:763937292837, “Location”;”New York, NY”, “Price”:”850,000” “Year built”:”1993”, “...” }",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        id: "5hgkg57",
+        document: "{ id”:763937292837, “Location”;”New York, NY”, “Price”:”850,000” “Year built”:”1993”, “...” }",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        id: "5hgkg57",
+        document: "{ id”:763937292837, “Location”;”New York, NY”, “Price”:”850,000” “Year built”:”1993”, “...” }",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        id: "5hgkg57",
+        document: "{ id”:763937292837, “Location”;”New York, NY”, “Price”:”850,000” “Year built”:”1993”, “...” }",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        id: "5hgkg57",
+        document: "{ id”:763937292837, “Location”;”New York, NY”, “Price”:”850,000” “Year built”:”1993”, “...” }",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        id: "5hgkg57",
+        document: "{ id”:763937292837, “Location”;”New York, NY”, “Price”:”850,000” “Year built”:”1993”, “...” }",
     },
+
 ]
 
-export type Project = {
-    project: string
-    date: string
-    creator: string
-    databases: string
-    users: string
+export type Database = {
+    id: string
+    document: string
 }
 
-export const columns: ColumnDef<Project>[] = [
+export const columns: ColumnDef<Database>[] = [
     {
         id: "select",
         header: ({ table }) => (
@@ -120,43 +109,50 @@ export const columns: ColumnDef<Project>[] = [
         enableHiding: false,
     },
     {
-        accessorKey: "project",
-        header: "Project Name",
+        accessorKey: "id",
+        header: "id",
         cell: ({ row }) => (
-            <div>{row.getValue("project")}</div>
+            <div>{row.getValue("id")}</div>
         ),
     },
     {
-        accessorKey: "date",
-        header: "Date Created",
+        accessorKey: "document",
+        header: "document",
         cell: ({ row }) => (
-            <div>{row.getValue("date")}</div>
+            <div>{row.getValue("document")}</div>
         ),
     },
     {
-        accessorKey: "creator",
-        header: "Created by",
-        cell: ({ row }) => (
-            <div>{row.getValue("creator")}</div>
-        ),
-    },
-    {
-        accessorKey: "databases",
-        header: "Databases",
-        cell: ({ row }) => (
-            <div>{row.getValue("databases")}</div>
-        ),
-    },
-    {
-        accessorKey: "users",
-        header: "Users",
-        cell: ({ row }) => (
-            <div>{row.getValue("users")}</div>
-        ),
+        id: "actions",
+        enableHiding: false,
+        cell: ({ row }) => {
+            const database = row.original
+            console.log(database.id)
+
+            return (
+                <AlertDialog>
+                    <AlertDialogTrigger asChild className="cursor-pointer">
+                        <Trash2Icon size={18} />
+                    </AlertDialogTrigger>
+                    <AlertDialogContent className="bg-[#111015] text-white border-[#242527] font-satoshi_regular">
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                You are about to remove this dataset from your group list
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogAction className="bg-red-700 hover:bg-red-500 border-none rounded-3xl py-2">Yes, Delete</AlertDialogAction>
+                            <AlertDialogCancel className="bg-transparent border-[#242527] py-2 rounded-3xl">No, Cancel</AlertDialogCancel>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            )
+        },
     },
 ]
 
-export function DataTableDemo() {
+export function DatabaseTable() {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []
@@ -285,13 +281,15 @@ export function DataTableDemo() {
                     >
                         Previous
                     </Button>
-                    <Button
-                        size="sm"
-                        onClick={() => table.nextPage()}
-                        disabled={!table.getCanNextPage()}
-                    >
-                        Next
-                    </Button>
+                    <Link to="/dashboard/project_1" >
+                        <Button
+                            size="sm"
+                            onClick={() => table.nextPage()}
+                            disabled={!table.getCanNextPage()}
+                        >
+                            Next
+                        </Button>
+                    </Link>
                 </div>
             </div>
         </div>

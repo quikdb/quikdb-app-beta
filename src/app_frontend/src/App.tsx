@@ -5,14 +5,16 @@ import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import Onboarding from './pages/onboarding';
 import Organizations from "./pages/organization/Organizations";
 import Orgs from "./pages/organization";
-import Dashboard from "./pages/dasboard/Dashboard";
-import Dash from "./pages/dasboard";
-import Projects from "./pages/dasboard/Projects";
+import Dashboard from "./pages/dashboard/Dashboard";
+import Dash from "./pages/dashboard";
+import Projects from "./pages/dashboard/Projects";
 import Documentation from "./pages/organization/Documentation";
 import Overview from "./pages/organization/Overview";
 import NewOrganization from "./pages/organization/NewOrganization";
-import Signup from "./pages/signup";
-import Login from "./pages/login";
+import Signup from "./pages/onboarding/signup";
+import Login from "./pages/onboarding/login";
+import Project from "./pages/dashboard/Project";
+import AddCollaborators from "./pages/dashboard/AddCollaborators";
 import Settings from "./pages/organization/Settings";
 import ListOrganizations from "./pages/organization/ListOrganizations";
 
@@ -78,6 +80,14 @@ function App() {
           path: "projects",
           element: <Projects />,
         },
+        {
+          path: ":projectId",
+          element: <Project />,
+        },
+        {
+          path: "add_collaborators",
+          element: <AddCollaborators />,
+        }
       ],
     },
     {
@@ -87,7 +97,7 @@ function App() {
   ]);
 
   return (
-    <div className="bg-blacko text-white h-screen font-satoshi_regular">
+    <div className="bg-blacko text-white h-screen font-satoshi_regular text-base">
       <RouterProvider router={router} />
       <Toaster />
     </div>

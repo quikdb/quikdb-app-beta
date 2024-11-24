@@ -1,5 +1,5 @@
-import { Button } from "@/components/ui/button"
-import { DataTableDemo } from "./data-table"
+import ListProject from "./components/ListProjectForm"
+import { ProjectTable } from "./components/project-table"
 
 const Projects = () => {
     return (
@@ -9,12 +9,10 @@ const Projects = () => {
                     <p className="font-satoshi_medium text-3xl">Projects</p>
                     <p className="font-satoshi_light text-base text-gray-400">Real-time overview of your listed projects</p>
                 </div>
-                <Button size="lg" className="bg-gradient w-fit px-4 text-[#0F1407]">
-                    List new project
-                </Button>
+                <ListProject />
             </div>
             <div>
-                <DataTableDemo />
+                <ProjectTable />
             </div>
         </div>
     )
