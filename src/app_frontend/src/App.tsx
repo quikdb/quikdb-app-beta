@@ -8,11 +8,15 @@ import Orgs from "./pages/organization";
 import Dashboard from "./pages/dashboard/Dashboard";
 import Dash from "./pages/dashboard";
 import Projects from "./pages/dashboard/Projects";
+import Documentation from "./pages/organization/Documentation";
+import Overview from "./pages/organization/Overview";
+import NewOrganization from "./pages/organization/NewOrganization";
 import Signup from "./pages/onboarding/signup";
 import Login from "./pages/onboarding/login";
 import Project from "./pages/dashboard/Project";
 import AddCollaborators from "./pages/dashboard/AddCollaborators";
-import UserMgt from "./pages/dashboard/UserMgt";
+import Settings from "./pages/organization/Settings";
+import ListOrganizations from "./pages/organization/ListOrganizations";
 
 function App() {
   const router = createBrowserRouter([
@@ -34,8 +38,30 @@ function App() {
       children: [
         {
           path: "",
+          element: <Overview />,
+        },
+        {
+          path: "organizations",
           element: <Organizations />,
         },
+        {
+          path: "list-organizations",
+          element: <ListOrganizations />,
+        },
+        {
+          path: "create-organization",
+          element: <NewOrganization />,
+        },
+        {
+          path: "documentation",
+          element: <Documentation />,
+        },
+        
+        {
+          path: "settings",
+          element: <Settings />,
+        },
+
         // {
         //   path: "new-record",
         //   element: <NewRecord />,
