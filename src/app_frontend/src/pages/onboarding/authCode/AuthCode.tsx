@@ -10,7 +10,7 @@ interface AuthCodeProps {
 
 const AuthCode:React.FC<AuthCodeProps> = ({email}) => {
   return (
-    <div className='flex flex-col w-full max-w-screen-2xl p-10'>
+    <div className='flex flex-col w-full p-10'>
     <FormHeader title='Create an account' description={`One-time login code sent to ${email}.`} showLogo />
 
     <main className='flex flex-col items-center justify-center my-16 w-full'>

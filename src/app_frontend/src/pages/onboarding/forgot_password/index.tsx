@@ -8,7 +8,7 @@ const ForgotPassword = () => {
   const [emailAddress, setEmailAddress] = useState("");
 
   return (
-    <div className='flex flex-col w-full max-w-screen-2xl p-10'>
+    <div className='flex flex-col w-full p-10'>
     <FormHeader title='Forgot password' description={`Please enter the email assigned to your account for password recovery.`} showLogo />
 
     <main className='flex flex-col items-center justify-center my-16 w-full'>
