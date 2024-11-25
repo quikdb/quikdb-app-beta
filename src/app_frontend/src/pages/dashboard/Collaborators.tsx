@@ -12,7 +12,7 @@ const Collaborators = () => {
             <div className="flex items-center relative mb-5">
                 <Label className="absolute left-4 text-gray-400"><Search size={14} /></Label>
                 <Input placeholder="Search by project name..." className="pl-10 border border-[#242527] py-3" />
-                <Link to="/dashboard/add_collaborators" className='absolute right-5'>
+                <Link to="/dashboard/add-collaborators" className='absolute right-5'>
                     <Button variant="outline" className="bg-gradient text-[#0F1407] border-none px-4 w-fit">
                         <PlusIcon className="text-white border border-dotted rounded-lg" />
                         Add Collaborators

@@ -18,6 +18,12 @@ import AddCollaborators from "./pages/dashboard/AddCollaborators";
 import Settings from "./pages/organization/Settings";
 import ListOrganizations from "./pages/organization/ListOrganizations";
 import UserMgt from "./pages/dashboard/UserMgt";
+import UserInvite from "./pages/dashboard/UserInvite";
+import UserProfile from "./pages/dashboard/UserProfile";
+import Rewards from "./pages/dashboard/Rewards";
+import Analytics from "./pages/dashboard/Analytics";
+import ForgotPassword from "./pages/onboarding/forgot_password";
+import AuthCode from "./pages/onboarding/authCode/AuthCode";
 
 function App() {
   const router = createBrowserRouter([
@@ -32,6 +38,14 @@ function App() {
     {
       path: "/login",
       element: <Login />,
+    },
+    {
+      path: "/forgot_password",
+      element: <ForgotPassword />,
+    },
+    {
+      path: "/authCode",
+      element: <AuthCode />,
     },
     {
       path: "organizations",
@@ -57,16 +71,11 @@ function App() {
           path: "documentation",
           element: <Documentation />,
         },
-        
+
         {
           path: "settings",
           element: <Settings />,
         },
-
-        // {
-        //   path: "new-record",
-        //   element: <NewRecord />,
-        // },
       ],
     },
     {
@@ -86,12 +95,28 @@ function App() {
           element: <Project />,
         },
         {
-          path: "add_collaborators",
+          path: "add-collaborators",
           element: <AddCollaborators />,
         },
         {
-          path: "user_mgt",
+          path: "user-mgt",
           element: <UserMgt />,
+        },
+        {
+          path: "user-invite",
+          element: <UserInvite />,
+        },
+        {
+          path: "user-profile",
+          element: <UserProfile />,
+        },
+        {
+          path: "rewards",
+          element: <Rewards />
+        },
+        {
+          path: "analytics",
+          element: <Analytics />
         }
       ],
     },
