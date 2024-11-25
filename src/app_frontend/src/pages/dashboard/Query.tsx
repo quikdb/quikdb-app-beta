@@ -43,11 +43,11 @@ const Query = () => {
                                 <SelectContent className="bg-[#141414] border-[#242527] text-white">
                                     <SelectGroup>
                                         <SelectLabel>Databases</SelectLabel>
-                                        <SelectItem value="apple">UrbanLifeSuite</SelectItem>
-                                        <SelectItem value="banana">RealEstate</SelectItem>
-                                        <SelectItem value="blueberry">ECommerce</SelectItem>
-                                        <SelectItem value="grapes">Education</SelectItem>
-                                        <SelectItem value="pineapple">Travel</SelectItem>
+                                        <SelectItem value="urbanlifesuite">UrbanLifeSuite</SelectItem>
+                                        <SelectItem value="realestate">RealEstate</SelectItem>
+                                        <SelectItem value="ecommerce">ECommerce</SelectItem>
+                                        <SelectItem value="education">Education</SelectItem>
+                                        <SelectItem value="travel">Travel</SelectItem>
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>

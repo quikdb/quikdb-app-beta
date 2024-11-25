@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Button } from './ui/button';
 import { BarChartIcon, BookmarkFilledIcon, Crosshair2Icon, DashboardIcon, FileTextIcon, GearIcon, ListBulletIcon, PersonIcon } from '@radix-ui/react-icons';
-import { HeadphonesIcon, LogOutIcon } from 'lucide-react';
+import { CloudUpload, HeadphonesIcon, LogOutIcon } from 'lucide-react';
 
 const Sidebar = () => {
 
@@ -11,9 +11,9 @@ const Sidebar = () => {
         { name: 'User Management', to: 'user-mgt', icon: <PersonIcon /> },
         { name: 'Audit Logs', to: '', icon: <ListBulletIcon /> },
         { name: 'Analytics', to: 'analytics', icon: <BarChartIcon /> },
-        { name: 'Access Token', to: '', icon: <Crosshair2Icon /> },
+        { name: 'Access Token', to: 'access-token', icon: <Crosshair2Icon /> },
         { name: 'Rewards', to: 'rewards', icon: <BookmarkFilledIcon /> },
-        { name: 'Data Backup', to: 'rewards', icon: <BookmarkFilledIcon /> },
+        { name: 'Data Backup', to: 'data-backup', icon: <CloudUpload size={16} /> },
         { name: 'Settings', to: '', icon: <GearIcon /> },
     ].filter(Boolean);
 

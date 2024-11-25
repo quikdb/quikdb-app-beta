@@ -24,6 +24,9 @@ import Rewards from "./pages/dashboard/Rewards";
 import Analytics from "./pages/dashboard/Analytics";
 import ForgotPassword from "./pages/onboarding/forgot_password";
 import AuthCode from "./pages/onboarding/authCode/AuthCode";
+import EmailNotification from "./pages/onboarding/email_notification/EmailNotification";
+import AccessToken from "./pages/dashboard/AccessToken";
+import DataBackup from "./pages/dashboard/DataBackup";
 
 function App() {
   const router = createBrowserRouter([
@@ -46,6 +49,10 @@ function App() {
     {
       path: "/authCode",
       element: <AuthCode />,
+    },
+    {
+      path: "/email_notification",
+      element: <EmailNotification />,
     },
     {
       path: "organizations",
@@ -117,6 +124,14 @@ function App() {
         {
           path: "analytics",
           element: <Analytics />
+        },
+        {
+          path: "access-token",
+          element: <AccessToken />
+        },
+        {
+          path: "data-backup",
+          element: <DataBackup />
         }
       ],
     },
