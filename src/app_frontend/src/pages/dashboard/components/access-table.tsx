@@ -11,17 +11,8 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table"
-import { ChevronDown } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
-import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/onboarding"
 import {
     Table,
     TableBody,
@@ -30,69 +21,99 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 import { Link } from "react-router-dom"
+import { Trash2Icon } from "lucide-react"
+import CreateToken from "./CreateTokenForm"
 
-const data: Project[] = [
+const data: Access[] = [
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        name: "API Access Key",
+        id: "A1B2C3D4E5F6G7",
+        date: "2024-01-15 10:23 AM",
+        exp_date: "2025-01-15",
+        permissions: "Full Access",
+        status: "Active",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        name: "CLI Token",
+        id: "G5H6J7K8L9M0N1",
+        date: "2024-01-15 10:23 AM",
+        exp_date: "2025-01-15",
+        permissions: "Read-only",
+        status: "Expired",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        name: "Testing Key",
+        id: "O2P3Q4R5S6T7U8",
+        date: "2024-01-15 10:23 AM",
+        exp_date: "2025-01-15",
+        permissions: "Full Access",
+        status: "Active",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        name: "API Analytics",
+        id: "V9W0X1Y2Z3A4B5",
+        date: "2024-01-15 10:23 AM",
+        exp_date: "2025-01-15",
+        permissions: "Backup Only",
+        status: "Expired",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        name: "Frontend Access",
+        id: "C6D7E8F9G0H1I2",
+        date: "2024-01-15 10:23 AM",
+        exp_date: "2025-01-15",
+        permissions: "Read-only",
+        status: "Active",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        name: "Backup Token",
+        id: "J3K4L5M6N7O8P9",
+        date: "2024-01-15 10:23 AM",
+        exp_date: "2025-01-15",
+        permissions: "Backup Only",
+        status: "Active",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        name: "Webhook Listener",
+        id: "Q1R2S3T4U5V6W7",
+        date: "2024-01-15 10:23 AM",
+        exp_date: "2025-01-15",
+        permissions: "Read-only",
+        status: "Expired",
     },
+    {
+        name: "Webhook Listener",
+        id: "Q1R2S3T4U5V6W7",
+        date: "2024-01-15 10:23 AM",
+        exp_date: "2025-01-15",
+        permissions: "Read-only",
+        status: "Expired",
+    },
+
 ]
 
-export type Project = {
-    project: string
+export type Access = {
+    name: string
+    id: string
     date: string
-    creator: string
-    databases: string
-    users: string
+    exp_date: string
+    permissions: "Full Access" | "Read-only" | "Backup Only"
+    status: "Active" | "Expired"
 }
 
-export const columns: ColumnDef<Project>[] = [
+export const columns: ColumnDef<Access>[] = [
     {
         id: "select",
         header: ({ table }) => (
@@ -119,43 +140,98 @@ export const columns: ColumnDef<Project>[] = [
         enableHiding: false,
     },
     {
-        accessorKey: "project",
-        header: "Project Name",
+        accessorKey: "name",
+        header: "Token name",
         cell: ({ row }) => (
-            <div>{row.getValue("project")}</div>
+            <div>
+                {row.getValue("name")}
+            </div>
+        ),
+    },
+    {
+        accessorKey: "id",
+        header: "Token ID",
+        cell: ({ row }) => (
+            <div>
+                {row.getValue("id")}
+            </div>
         ),
     },
     {
         accessorKey: "date",
-        header: "Date Created",
+        header: "Date created",
         cell: ({ row }) => (
-            <div>{row.getValue("date")}</div>
+            <div>
+                {row.getValue("date")}
+            </div>
         ),
     },
     {
-        accessorKey: "creator",
-        header: "Created by",
+        accessorKey: "exp_date",
+        header: "Expiration date",
         cell: ({ row }) => (
-            <div>{row.getValue("creator")}</div>
+            <div>
+                {row.getValue("exp_date")}
+            </div>
         ),
     },
     {
-        accessorKey: "databases",
-        header: "Databases",
+        accessorKey: "permissions",
+        header: "Permissions",
         cell: ({ row }) => (
-            <div>{row.getValue("databases")}</div>
+            <div>
+                {row.getValue("permissions")}
+            </div>
         ),
     },
     {
-        accessorKey: "users",
-        header: "Users",
-        cell: ({ row }) => (
-            <div>{row.getValue("users")}</div>
-        ),
+        accessorKey: "status",
+        header: "Status",
+        cell: ({ row }) => {
+            const tokens = row.original
+            const status = tokens.status
+            return (
+                <div className={`${status === 'Active' ? 'bg-[#17211D]' : 'bg-[#BA2543]/10'} rounded-2xl flex items-center justify-center gap-2 py-1`}>
+                    <p className={`${status === 'Active' ? 'text-[#027A48]' : 'text-[#BA2543]'} text-xs font-satoshi_regular`}>{status}</p>
+                </div>
+            )
+        },
+    },
+    {
+        id: "actions",
+        enableHiding: false,
+        header: "Action",
+        cell: ({ row }) => {
+            const orgUsers = row.original
+            console.log(orgUsers.name)
+
+            return (
+                <div className="flex items-center gap-2">
+                    <AlertDialog>
+                        <AlertDialogTrigger asChild className="cursor-pointer">
+                            <Trash2Icon size={18} />
+                        </AlertDialogTrigger>
+                        <AlertDialogContent className="bg-[#111015] text-white border-[#242527] font-satoshi_regular">
+                            <AlertDialogHeader>
+                                <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                    You are about to remove this dataset from your group list
+                                </AlertDialogDescription>
+                            </AlertDialogHeader>
+                            <AlertDialogFooter>
+                                <AlertDialogAction className="bg-red-700 hover:bg-red-500 border-none rounded-3xl py-2">Yes, Delete</AlertDialogAction>
+                                <AlertDialogCancel className="bg-transparent border-[#242527] py-2 rounded-3xl">No, Cancel</AlertDialogCancel>
+                            </AlertDialogFooter>
+                        </AlertDialogContent>
+                    </AlertDialog>
+                    <CreateToken isEditing />
+                </div>
+            )
+        },
     },
 ]
 
-export function ProjectTable() {
+export function AccessTable() {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []
@@ -184,43 +260,7 @@ export function ProjectTable() {
     })
 
     return (
-        <div className="w-full">
-            <div className="flex items-center pt-7 pb-5">
-                <Input
-                    placeholder="Filter emails..."
-                    value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
-                    onChange={(event) =>
-                        table.getColumn("email")?.setFilterValue(event.target.value)
-                    }
-                    className="max-w-sm h-11"
-                />
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild className="h-11">
-                        <Button className="ml-auto">
-                            Columns <ChevronDown />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-[#111015] text-white border-gray-600">
-                        {table
-                            .getAllColumns()
-                            .filter((column) => column.getCanHide())
-                            .map((column) => {
-                                return (
-                                    <DropdownMenuCheckboxItem
-                                        key={column.id}
-                                        className="capitalize"
-                                        checked={column.getIsVisible()}
-                                        onCheckedChange={(value) =>
-                                            column.toggleVisibility(!!value)
-                                        }
-                                    >
-                                        {column.id}
-                                    </DropdownMenuCheckboxItem>
-                                )
-                            })}
-                    </DropdownMenuContent>
-                </DropdownMenu>
-            </div>
+        <div className="w-full mt-7">
             <div className="rounded-md border border-[#242527]">
                 <Table>
                     <TableHeader>
@@ -284,7 +324,7 @@ export function ProjectTable() {
                     >
                         Previous
                     </Button>
-                    <Link to="/dashboard/project-1" >
+                    <Link to="" >
                         <Button
                             size="sm"
                             onClick={() => table.nextPage()}

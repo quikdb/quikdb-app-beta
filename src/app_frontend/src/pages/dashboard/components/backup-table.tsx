@@ -32,67 +32,30 @@ import {
 } from "@/components/ui/table"
 import { Link } from "react-router-dom"
 
-const data: Project[] = [
+const data: Backup[] = [
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        name: "Jojo's testDB",
+        oldest: "2024-01-15 10:23 AM",
+        newest: "2024-01-15 10:23 AM",
+        region: "US East (N. Virginia)",
     },
     {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
+        name: "User Profiles",
+        oldest: "2024-01-15 10:23 AM",
+        newest: "2024-01-15 10:23 AM",
+        region: "US West (Oregon)",
     },
-    {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
-    },
-    {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
-    },
-    {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
-    },
-    {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
-    },
-    {
-        project: "UrbanLfe Suite",
-        date: "Jun 24 2024 11:42:03",
-        creator: "Joan Nobei",
-        databases: "0 clusters",
-        users: "6 users",
-    },
+
 ]
 
-export type Project = {
-    project: string
-    date: string
-    creator: string
-    databases: string
-    users: string
+export type Backup = {
+    name: string
+    oldest: string
+    newest: string
+    region: string
 }
 
-export const columns: ColumnDef<Project>[] = [
+export const columns: ColumnDef<Backup>[] = [
     {
         id: "select",
         header: ({ table }) => (
@@ -119,43 +82,44 @@ export const columns: ColumnDef<Project>[] = [
         enableHiding: false,
     },
     {
-        accessorKey: "project",
-        header: "Project Name",
+        accessorKey: "name",
+        header: "Database Name",
         cell: ({ row }) => (
-            <div>{row.getValue("project")}</div>
+            <div>{row.getValue("name")}</div>
         ),
     },
     {
-        accessorKey: "date",
-        header: "Date Created",
+        accessorKey: "oldest",
+        header: "Oldest Snapshot",
         cell: ({ row }) => (
-            <div>{row.getValue("date")}</div>
+            <div>{row.getValue("oldest")}</div>
         ),
     },
     {
-        accessorKey: "creator",
-        header: "Created by",
+        accessorKey: "newest",
+        header: "Newest Snapshot",
         cell: ({ row }) => (
-            <div>{row.getValue("creator")}</div>
+            <div>{row.getValue("newest")}</div>
         ),
     },
     {
-        accessorKey: "databases",
-        header: "Databases",
+        accessorKey: "region",
+        header: "Snapshot region",
         cell: ({ row }) => (
-            <div>{row.getValue("databases")}</div>
+            <div>{row.getValue("region")}</div>
         ),
     },
     {
-        accessorKey: "users",
-        header: "Users",
-        cell: ({ row }) => (
-            <div>{row.getValue("users")}</div>
+        id: "actions",
+        enableHiding: false,
+        header: "Actions",
+        cell: () => (
+            <Button className="bg-transparent border border-[#242527]">Restore</Button>
         ),
     },
 ]
 
-export function ProjectTable() {
+export function BackupTable() {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []
