@@ -38,7 +38,7 @@ const Query = () => {
                             </Label>
                             <Select>
                                 <SelectTrigger className="p-6 py-4 h-14 border-none bg-[#141414] rounded-2xl text-[#A5A5A5] text-[16px]">
-                                    <SelectValue placeholder="Select a fruit" />
+                                    <SelectValue placeholder="Select a database" />
                                 </SelectTrigger>
                                 <SelectContent className="bg-[#141414] border-[#242527] text-white">
                                     <SelectGroup>

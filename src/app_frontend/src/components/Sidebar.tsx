@@ -8,7 +8,7 @@ const Sidebar = () => {
     const navigation = [
         { name: 'Overview', to: '', icon: <DashboardIcon /> },
         { name: 'Projects', to: 'projects', icon: <FileTextIcon /> },
-        { name: 'User Management', to: '', icon: <PersonIcon /> },
+        { name: 'User Management', to: 'user_mgt', icon: <PersonIcon /> },
         { name: 'Audit Logs', to: '', icon: <ListBulletIcon /> },
         { name: 'Analytics', to: '', icon: <BarChartIcon /> },
         { name: 'Access Token', to: '', icon: <Crosshair2Icon /> },
