@@ -43,45 +43,57 @@ const data: Database[] = [
         email: "tannerfinsha@gmail.com",
         orgRoles: ["Project Creator", "Project Owner", "Organization Owner", "Project Owner"],
         projectRoles: "Project Owner",
+        emailStatus: "Verified",
     },
     {
         name: "Tanner Finsha",
         email: "tannerfinsha@gmail.com",
         orgRoles: ["Project Owner", "Project Owner"],
         projectRoles: "Project Owner",
+        emailStatus: "Pending",
     },
     {
         name: "Tanner Finsha",
         email: "tannerfinsha@gmail.com",
         orgRoles: ["Project Owner", "Project Owner", "Organization Owner"],
         projectRoles: "Project Owner",
+        emailStatus: "Rejected",
     },
     {
         name: "Tanner Finsha",
         email: "tannerfinsha@gmail.com",
         orgRoles: ["Project Owner"],
         projectRoles: "Project Owner",
+        emailStatus: "Verified",
     },
     {
         name: "Tanner Finsha",
         email: "tannerfinsha@gmail.com",
         orgRoles: ["Project Owner", "Project Owner", "Project Owner"],
         projectRoles: "Project Owner",
+        emailStatus: "Pending",
     },
     {
         name: "Tanner Finsha",
         email: "tannerfinsha@gmail.com",
         orgRoles: ["Project Owner", "Organization Owner"],
         projectRoles: "Project Owner",
+        emailStatus: "Rejected",
     },
     {
         name: "Tanner Finsha",
         email: "tannerfinsha@gmail.com",
         orgRoles: ["Project Owner", "Project Owner", "Project Owner"],
         projectRoles: "Project Owner",
+        emailStatus: "Verified",
     },
-
-
+    {
+        name: "Tanner Finsha",
+        email: "tannerfinsha@gmail.com",
+        orgRoles: ["Project Owner", "Project Owner", "Project Owner"],
+        projectRoles: "Project Owner",
+        emailStatus: "Verified",
+    },
 ]
 
 export type Database = {
@@ -89,7 +101,7 @@ export type Database = {
     email: string
     orgRoles: string[]
     projectRoles: string
-
+    emailStatus: "Verified" | "Pending" | "Rejected"
 }
 
 export const columns: ColumnDef<Database>[] = [
@@ -122,11 +134,25 @@ export const columns: ColumnDef<Database>[] = [
         accessorKey: "name",
         header: "Name",
         cell: ({ row }) => {
-            const collaborators = row.original
+            const orgUsers = row.original
             return (
                 <div>
-                    <div className="text-base">{collaborators.name}</div>
-                    <div className="text-gray-400 text-sm mt-1">{collaborators.email}</div>
+                    <div className="text-base">{orgUsers.name}</div>
+                    <div className="text-gray-400 text-sm mt-1">{orgUsers.email}</div>
+                </div>
+            )
+        },
+    },
+    {
+        accessorKey: "emailStatus",
+        header: "Email Status",
+        cell: ({ row }) => {
+            const orgUsers = row.original
+            const status = orgUsers.emailStatus
+            return (
+                <div className={`${status === 'Verified' ? 'bg-[#17211D]' : status === 'Pending' ? 'bg-[#FFB422]/10' : 'bg-[#BA2543]/10'} rounded-2xl flex items-center justify-center gap-2 py-1`}>
+                    <div className={`${status === 'Verified' ? 'bg-[#12B76A]' : status === 'Pending' ? 'bg-[#FFB422]' : 'bg-[#CB4862]'} w-1 h-1 rounded-full`}></div>
+                    <div className={`${status === 'Verified' ? 'text-[#027A48]' : status === 'Pending' ? 'text-[#FFB422]' : 'text-[#BA2543]'} text-xs font-satoshi_regular`}>{status}</div>
                 </div>
             )
         },
@@ -135,8 +161,8 @@ export const columns: ColumnDef<Database>[] = [
         accessorKey: "orgRoles",
         header: "Organization Roles",
         cell: ({ row }) => {
-            const collaborators = row.original
-            const orgRoles = collaborators.orgRoles
+            const orgUsers = row.original
+            const orgRoles = orgUsers.orgRoles
             return (
                 <div className="flex gap-3">
                     {orgRoles.map((role, index) => (
@@ -158,8 +184,8 @@ export const columns: ColumnDef<Database>[] = [
         enableHiding: false,
         header: "Action",
         cell: ({ row }) => {
-            const collaborators = row.original
-            console.log(collaborators.name)
+            const orgUsers = row.original
+            console.log(orgUsers.name)
 
             return (
                 <AlertDialog>
@@ -184,7 +210,7 @@ export const columns: ColumnDef<Database>[] = [
     },
 ]
 
-export function CollaboratorsTable() {
+export function OrgUsersTable() {
     const [sorting, setSorting] = React.useState<SortingState>([])
     const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
         []
@@ -213,7 +239,7 @@ export function CollaboratorsTable() {
     })
 
     return (
-        <div className="w-full">
+        <div className="w-full mt-7">
             <div className="rounded-md border border-[#242527]">
                 <Table>
                     <TableHeader>

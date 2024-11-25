@@ -12,6 +12,7 @@ import Signup from "./pages/onboarding/signup";
 import Login from "./pages/onboarding/login";
 import Project from "./pages/dashboard/Project";
 import AddCollaborators from "./pages/dashboard/AddCollaborators";
+import UserMgt from "./pages/dashboard/UserMgt";
 
 function App() {
   const router = createBrowserRouter([
@@ -60,6 +61,10 @@ function App() {
         {
           path: "add_collaborators",
           element: <AddCollaborators />,
+        },
+        {
+          path: "user_mgt",
+          element: <UserMgt />,
         }
       ],
     },

@@ -1,7 +1,7 @@
-const index = () => {
+const ForgotPassword = () => {
   return (
-    <div>index</div>
+    <div>ForgotPassword</div>
   )
 }
 
-export default index
+export default ForgotPassword
