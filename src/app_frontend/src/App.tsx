@@ -17,6 +17,7 @@ import Project from "./pages/dashboard/Project";
 import AddCollaborators from "./pages/dashboard/AddCollaborators";
 import Settings from "./pages/organization/Settings";
 import ListOrganizations from "./pages/organization/ListOrganizations";
+import UserMgt from "./pages/dashboard/UserMgt";
 
 function App() {
   const router = createBrowserRouter([

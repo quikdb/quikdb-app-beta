@@ -6,7 +6,7 @@ const OrgSidebar = () => {
     const navigation = [
         { name: 'Overview', to: '', icon: <DashboardIcon /> },
         { name: 'Organizations', to: 'organizations', icon: <ColumnsIcon /> },
-        { name: 'Invitations', to: 'invitations', icon: <BookmarkFilledIcon /> },
+        { name: 'Invitations', to: 'list-organizations', icon: <BookmarkFilledIcon /> },
         { name: 'Documentation', to: 'documentation', icon: <FileTextIcon /> },
         { name: 'Settings', to: 'settings', icon: <GearIcon /> },
     ].filter(Boolean);

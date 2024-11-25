@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button"
 import { OrgUsersTable } from "./components/orguser-table"
 import { PlusIcon } from "lucide-react"
 
-const Projects = () => {
+const UserMgt = () => {
     return (
         <div className="mt-10">
             <div className="flex justify-between">
@@ -22,4 +22,4 @@ const Projects = () => {
     )
 }
 
-export default Projects
+export default UserMgt
