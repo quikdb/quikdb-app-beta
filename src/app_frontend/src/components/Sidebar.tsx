@@ -8,11 +8,12 @@ const Sidebar = () => {
     const navigation = [
         { name: 'Overview', to: '', icon: <DashboardIcon /> },
         { name: 'Projects', to: 'projects', icon: <FileTextIcon /> },
-        { name: 'User Management', to: 'user_mgt', icon: <PersonIcon /> },
+        { name: 'User Management', to: 'user-mgt', icon: <PersonIcon /> },
         { name: 'Audit Logs', to: '', icon: <ListBulletIcon /> },
-        { name: 'Analytics', to: '', icon: <BarChartIcon /> },
+        { name: 'Analytics', to: 'analytics', icon: <BarChartIcon /> },
         { name: 'Access Token', to: '', icon: <Crosshair2Icon /> },
-        { name: 'Rewards', to: '', icon: <BookmarkFilledIcon /> },
+        { name: 'Rewards', to: 'rewards', icon: <BookmarkFilledIcon /> },
+        { name: 'Data Backup', to: 'rewards', icon: <BookmarkFilledIcon /> },
         { name: 'Settings', to: '', icon: <GearIcon /> },
     ].filter(Boolean);
 

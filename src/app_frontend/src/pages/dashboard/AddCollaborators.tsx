@@ -11,20 +11,20 @@ const roles = [
         description: "Provides full access to the current organization. A user can access all data, database, and projects in the organization"
     },
     {
-        name: "Project Owner",
+        name: "Database Data Reader/Writer",
+        description: "Provides reads and write access to data on any database in the project"
+    },
+    {
+        name: "Project Manager",
         description: "Provides full access to the current organization. A user can access all data, database, and projects in the organization"
     },
     {
-        name: "Project Owner",
+        name: "Database Data Reader",
         description: "Provides full access to the current organization. A user can access all data, database, and projects in the organization"
     },
     {
-        name: "Project Owner",
-        description: "Provides full access to the current organization. A user can access all data, database, and projects in the organization"
-    },
-    {
-        name: "Project Owner",
-        description: "Provides full access to the current organization. A user can access all data, database, and projects in the organization"
+        name: "Project Viewer",
+        description: "Provides read-only access to all databases and App Services in the project. A collaborator can’t access its a database or access its data"
     },
 ]
 

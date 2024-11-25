@@ -281,7 +281,7 @@ export function DatabaseTable() {
                     >
                         Previous
                     </Button>
-                    <Link to="/dashboard/project_1" >
+                    <Link to="/dashboard/project-1" >
                         <Button
                             size="sm"
                             onClick={() => table.nextPage()}

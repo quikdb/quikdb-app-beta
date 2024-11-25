@@ -303,7 +303,7 @@ export function OrgUsersTable() {
                     >
                         Previous
                     </Button>
-                    <Link to="/dashboard/project_1" >
+                    <Link to="" >
                         <Button
                             size="sm"
                             onClick={() => table.nextPage()}
