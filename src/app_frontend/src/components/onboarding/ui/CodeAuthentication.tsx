@@ -15,14 +15,14 @@ const CodeAuthentication: React.FC<CodeAuthenticationProps> = ({email}) => {
       <main className='flex flex-col items-center justify-center my-16 w-full'>
         <div className='flex flex-col w-full md:w-[680px] items-center'>
           <Form action="submit" className='flex flex-col gap-y-4 items-center w-full'>
-            <Input type='email'
-              placeholder='Email Address'
+            <Input type='text'
+              placeholder='Enter Code'
               required
             />
 
             <Button type='submit' className='w-full bg-[#141414] h-[50px] text-lg rounded-2xl p-6 text-[#A5A5A5]'>Continue</Button>
 
-            <Link to="/sign-up" className='text-[16px] text-gradient'>Resend code</Link>
+            <span className='text-[16px] text-gradient cursor-pointer'>Resend code</span>
           </Form>
         </div>
       </main>

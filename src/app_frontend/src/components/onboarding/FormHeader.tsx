@@ -18,7 +18,7 @@ const FormHeader: React.FC<FormHeaderProps> = ({title, description, showLogo}) =
     <div className='flex flex-col w-full items-center justify-center'>
       <section className='flex flex-col items-center w-full md:w-[680px] mb-10 gap-y-2'>
         <p className='text-3xl text-white text-[500]'>{title}</p>
-        <p className='text-sm font-light text-[#B3B4B3]'>{description}</p>
+        <p className='text-sm font-light text-[#B3B4B3] w-[50%] text-center'>{description}</p>
       </section>
     </div>
   </div>
