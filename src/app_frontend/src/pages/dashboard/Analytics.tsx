@@ -37,7 +37,7 @@ const Analytics = () => {
                     <Card className="bg-transparent text-white border-[#242527] p-4 w-[32%]">
                         <p className="text-lg">Total projects</p>
                         <div className="mt-7">
-                            <p className="text-3xl font-satoshi_medium">5 projects</p>
+                            <p className="text-3xl font-satoshi_medium">5 groups</p>
                             <div className="flex gap-3 text-xs mt-2">
                                 <p className="flex items-center gap-1 text-green-400">10% <TrendingUp size={16} /></p>
                                 <p className="text-gray-400">+2 this week</p>
@@ -47,7 +47,7 @@ const Analytics = () => {
                     <Card className="bg-transparent text-white border-[#242527] p-4 w-[32%]">
                         <p className="text-lg">Total projects</p>
                         <div className="mt-7">
-                            <p className="text-3xl font-satoshi_medium">5 projects</p>
+                            <p className="text-3xl font-satoshi_medium">5 items</p>
                             <div className="flex gap-3 text-xs mt-2">
                                 <p className="flex items-center gap-1 text-green-400">10% <TrendingUp size={16} /></p>
                                 <p className="text-gray-400">+2 this week</p>
