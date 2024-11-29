@@ -27,6 +27,7 @@ import AuthCode from "./pages/onboarding/authCode/AuthCode";
 import EmailNotification from "./pages/onboarding/email_notification/EmailNotification";
 import AccessToken from "./pages/dashboard/AccessToken";
 import DataBackup from "./pages/dashboard/DataBackup";
+import Notifications from "./components/Notifications";
 
 function App() {
   const router = createBrowserRouter([
@@ -132,6 +133,10 @@ function App() {
         {
           path: "data-backup",
           element: <DataBackup />
+        },
+        {
+          path: "notifications",
+          element: <Notifications />,
         }
       ],
     },
