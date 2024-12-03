@@ -83,7 +83,7 @@ module {
             }
         };
 
-        public func addMemberToOrganization(orgId: Text, newMember: Principal, role: Blob, caller: Principal) : Result.Result<Organization, Text> {
+        public func addMemberToOrganization(orgId: Text, newMember: Principal,  caller: Principal) : Result.Result<Organization, Text> {
             switch (findOrganization(orgId)) {
                 case null { #err("Organization not found") };
                 case (?org) {

@@ -115,7 +115,7 @@ module {
 
                     let newCredit = {
                         userId = userId;
-                        balance = credit.balance - amount;
+                        balance =0;
                     };
                     updateUserCredit(newCredit);
                     recordTransaction(userId, amount, #debit);
