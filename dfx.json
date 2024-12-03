@@ -3,16 +3,6 @@
     "app_backend": {
       "main": "src/app_backend/main.mo",
       "type": "motoko"
-    },
-    "app_frontend": {
-      "dependencies": [
-        "app_backend"
-      ],
-      "source": [
-        "src/app_frontend/dist"
-      ],
-      "type": "assets",
-      "workspace": "app_frontend"
     }
   },
   "defaults": {
