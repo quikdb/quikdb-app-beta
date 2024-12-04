@@ -6,20 +6,27 @@ import Blob "mo:base/Blob";
 // Import your modules
 import OrgModule "./modules/org.mod";
 import IncentiveModule "./modules/incentives.mod";
+actor  QuikDB {
+     private var owner: Principal = Principal.fromText("2vxsx-fae");
 
-actor class QuikDB  (initOwner: Principal) {
-    
-    private let appOwner: Principal = initOwner;
-
-    // Getter for appOwner
-    public func getAppOwner(): async Principal {
-        appOwner
-    };
     // Organization and Incentive Managers
     private let orgManager = OrgModule.OrganizationManager();
     private let incentiveManager = IncentiveModule.IncentiveManager();
 
+     // Initialization function (custom "constructor")
+    public func initOwner(initOwner: Principal): async Bool {
+        if (Principal.isAnonymous(owner)) { // Ensure it can only be initialized once
+            owner := initOwner;
+            return true;
+        } else {
+            return false; // Already initialized
+        };
+    };
 
+    // Getter function for the owner
+    public query func getOwner(): async Principal {
+        owner;
+    };
     // Organization Management Functions
     public shared(msg) func createOrganization(id: Text, name: Text, details: ?Blob) : async Result.Result<OrgModule.Organization, Text> {
         orgManager.createOrganization(id, name, msg.caller, details)
