@@ -3,6 +3,11 @@
     "database": {
       "main": "src/database/main.mo",
       "type": "motoko"
+    },
+    "test": {
+      "main": "src/database/TestQuikDB.mo",
+      "type": "motoko",
+      "dependencies": ["database"]
     }
   },
   "defaults": {
