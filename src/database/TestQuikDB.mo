@@ -3,6 +3,9 @@ import Debug "mo:base/Debug";
 import Text "mo:base/Text";
 import Array "mo:base/Array";
 
+import Int "mo:base/Int";
+
+
 
 
 
@@ -101,7 +104,141 @@ type Record = { id: Text; fields: [(Text, Text)] };
             return false;
             };
         };
+    };
+   public func testGetRecord(): async Text {
+    // First, create the "Student" schema if not already created
+    let _ = await QuikDB.deleteSchema("Student");
+    
+    // Define fields for the "Student" schema
+    let studentFields = [
+        { name = "name"; fieldType = "string" },
+        { name = "age"; fieldType = "integer" },
+        { name = "color"; fieldType = "string" }
+    ];
+
+    // Ensure schema is created
+    let createResult = await QuikDB.createSchema("Student", studentFields, ["age"]);
+    switch (createResult) {
+        case (#err(errMsg)) {
+            Debug.print("⚠️ Schema creation skipped: " # errMsg); // Likely the schema already exists
         };
+        case (#ok(_)) {
+            Debug.print("✅ Schema 'Student' ensured for testing.");
+        };
+    };
+
+    // Create records
+    let record1: Record = {
+        id = "student1";
+        fields = [
+            ("name", "Bob"),
+            ("age", "30"),
+            ("color", "red"),
+            ("creation_timestamp", "1234567890"),
+            ("update_timestamp", "1234567890")
+        ];
+    };
+    let record2: Record = {
+        id = "student2";
+        fields = [
+            ("name", "Alice"),
+            ("age", "25"),
+            ("color", "blue"),
+            ("creation_timestamp", "9876543210"),
+            ("update_timestamp", "9876543210")
+        ];
+    };
+
+    // Insert the first record
+    let insertResult = await QuikDB.insertData("Student", record1);
+    switch (insertResult) {
+        case (#err(errMsg)) {
+            return "Test Failed: Record insertion failed with error: " # errMsg;
+        };
+        case (#ok(true)) {
+            Debug.print("✅ Record1 inserted successfully.");
+        };
+        case (#ok(false)) {
+            return "Test Failed: Record1 insertion returned false.";
+        };
+    };
+
+    // Insert the second record
+    let insertResult1 = await QuikDB.insertData("Student", record2);
+    switch (insertResult1) {
+        case (#err(errMsg)) {
+            return "Test Failed: Record2 insertion failed with error: " # errMsg;
+        };
+        case (#ok(true)) {
+            Debug.print("✅ Record2 inserted successfully.");
+        };
+        case (#ok(false)) {
+            return "Test Failed: Record2 insertion returned false.";
+        };
+    };
+
+    // Step 2: Call the function for the first record
+    let result = await QuikDB.getRecord("Student", "student2");
+    switch (result) {
+        case (#ok(details)) {
+           
+                   Debug.print("details for  " # debug_show(details));
+                return "Test passed: Valid record size and details for student1.";
+            };
+        case (#err(errorMsg)) {
+            return "Test Failed: Error occurred while getting record size: " # errorMsg;
+        };
+    };
+   };
+   public func testCountSchemas(): async Text {
+    // Step 1: Ensure the "Student" schema exists
+    let _ = await QuikDB.deleteSchema("Student");
+    let studentFields = [
+        { name = "name"; fieldType = "string" },
+        { name = "age"; fieldType = "integer" },
+        { name = "color"; fieldType = "string" }
+    ];
+
+    let createResult = await QuikDB.createSchema("Student", studentFields, ["age"]);
+    switch (createResult) {
+        case (#err(errMsg)) {
+            Debug.print("⚠️ Schema creation skipped: " # errMsg); // Schema already exists or error
+        };
+        case (#ok(_)) {
+            Debug.print("✅ Schema 'Student' created.");
+        };
+    };
+
+    // Step 2: Create another schema "Teacher"
+    let teacherFields = [
+        { name = "name"; fieldType = "string" },
+        { name = "subject"; fieldType = "string" },
+        { name = "experience"; fieldType = "integer" }
+    ];
+
+    let createResult2 = await QuikDB.createSchema("Teacher", teacherFields, ["experience"]);
+    switch (createResult2) {
+        case (#err(errMsg)) {
+            Debug.print("⚠️ Schema creation skipped: " # errMsg); // Schema already exists or error
+        };
+        case (#ok(_)) {
+            Debug.print("✅ Schema 'Teacher' created.");
+        };
+    };
+
+    // Step 3: Call the countSchemas function
+    let totalSchemas = await QuikDB.noOfSchema();
+    
+    // Step 4: Verify the result
+    if (totalSchemas == 2) {
+        return "Test passed: Total schemas count is " # Int.toText(totalSchemas) # ".";
+    } else {
+        return "Test failed: Expected 2 schemas, but got " # Int.toText(totalSchemas) # ".";
+    }
+};
+
+
+
 
 
     // Test function to query already saved data
@@ -536,7 +673,115 @@ type Record = { id: Text; fields: [(Text, Text)] };
     };
      // Function to test getRecordSizes
     public  func testGetRecordSizes(): async Text {
-        // First, create the "Student" schema if not already created
+            // First, create the "Student" schema if not already created
+                    let _ = await QuikDB.deleteSchema("Student");
+        let studentFields = [
+            { name = "name"; fieldType = "string" },
+            { name = "age"; fieldType = "integer" },
+            { name = "color"; fieldType = "string" }
+        ];
+
+        // Ensure schema is created
+        let createResult = await QuikDB.createSchema("Student", studentFields, ["age"]);
+        switch (createResult) {
+            case (#err(errMsg)) {
+            Debug.print("⚠️ Schema creation skipped: " # errMsg); // Likely the schema already exists
+            };
+            case (#ok(_)) {
+            Debug.print("✅ Schema 'Student' ensured for testing.");
+            };
+        };
+
+        // Insert a record into the schema
+        let record: Record = {
+            id = "student1";
+            fields = [
+            ("name", "Bob"),
+            ("age", "30"),
+            ("color", "red"),
+            ("creation_timestamp", "1234567890"),
+            ("update_timestamp", "1234567890")
+            ];
+        };
+        let record2: Record = {
+            id = "student2";
+            fields = [
+            ("name", "Bob"),
+            ("age", "30"),
+            ("color", "red"),
+            ("creation_timestamp", "1234567890"),
+            ("update_timestamp", "1234567890")
+            ];
+        };
+        let record3: Record = {
+            id = "student3";
+            fields = [
+                ("name", "Charlie"),
+                ("age", "25"),
+                ("color", "blue"),
+                ("creation_timestamp", "1234567890"),
+                ("update_timestamp", "1234567890")
+            ];
+            };
+
+        let insertResult = await QuikDB.insertData("Student", record);
+        switch (insertResult) {
+            case (#err(errMsg)) {
+            return "Test Failed: Record insertion failed with error: " # errMsg;
+            };
+            case (#ok(true)) {
+            Debug.print("✅ Record inserted successfully.");
+            };
+            case (#ok(false)) {
+            return "Test Failed: Record insertion returned false.";
+            };
+        };
+
+        let insertResult1 = await QuikDB.insertData("Student", record2);
+        switch (insertResult1) {
+            case (#err(errMsg)) {
+            return "Test Failed: Record2 insertion failed with error: " # errMsg;
+            };
+            case (#ok(true)) {
+            Debug.print("✅ Record2 inserted successfully.");
+            };
+            case (#ok(false)) {
+            return "Test Failed: Record 2insertion returned false.";
+            };
+        };
+        let insertResultw = await QuikDB.insertData("Student", record3);
+        switch (insertResultw) {
+            case (#err(errMsg)) {
+            return "Test Failed: Record2 insertion failed with error: " # errMsg;
+            };
+            case (#ok(true)) {
+            Debug.print("✅ Record2 inserted successfully.");
+            };
+            case (#ok(false)) {
+            return "Test Failed: Record 2insertion returned false.";
+            };
+        };
+
+            let result = await QuikDB.getRecord("Student");
+
+            // Check if the result is an error or ok, and return a debug-friendly output
+            switch (result) {
+                case (#err(errMsg)) {
+                    return "Error: " # errMsg;
+                };
+                case( #ok(sizes)) {
+                    // Convert the list of sizes to a string for easier inspection
+                    let sizeList = Array.foldLeft<Text, Text>(sizes, "", func(acc, sizeText) {
+                        acc # sizeText # "\n";
+                    });
+                    return "Sizes: \n" # sizeList;
+                };
+            };
+    };
+    public func testGetMetrics(): async Text {
+    // First, create the "Student" schema if not already created
+    let _ = await QuikDB.deleteSchema("Student");
+    
     let studentFields = [
         { name = "name"; fieldType = "string" },
         { name = "age"; fieldType = "integer" },
@@ -547,69 +792,116 @@ type Record = { id: Text; fields: [(Text, Text)] };
     let createResult = await QuikDB.createSchema("Student", studentFields, ["age"]);
     switch (createResult) {
         case (#err(errMsg)) {
-        Debug.print("⚠️ Schema creation skipped: " # errMsg); // Likely the schema already exists
+            Debug.print("⚠️ Schema creation skipped: " # errMsg); // Likely the schema already exists
         };
         case (#ok(_)) {
-        Debug.print("✅ Schema 'Student' ensured for testing.");
+            Debug.print("✅ Schema 'Student' ensured for testing.");
         };
     };
 
-    // Insert a record into the schema
+    // Insert records into the schema
     let record: Record = {
+        id = "student1";
+        fields = [
+            ("name", "Bob"),
+            ("age", "30"),
+            ("color", "red"),
+            ("creation_timestamp", "1234567890"),
+            ("update_timestamp", "1234567890")
+        ];
+    };
+    let record2: Record = {
         id = "student2";
         fields = [
-        ("name", "Bob"),
-        ("age", "30"),
-        ("color", "red"),
-        ("creation_timestamp", "1234567890"),
-        ("update_timestamp", "1234567890")
+            ("name", "Bob"),
+            ("age", "30"),
+            ("color", "red"),
+            ("creation_timestamp", "1234567890"),
+            ("update_timestamp", "1234567890")
+        ];
+    };
+    let record3: Record = {
+        id = "student3";
+        fields = [
+            ("name", "Charlie"),
+            ("age", "25"),
+            ("color", "blue"),
+            ("creation_timestamp", "1234567890"),
+            ("update_timestamp", "1234567890")
         ];
     };
 
+    // Insert records into the database
     let insertResult = await QuikDB.insertData("Student", record);
     switch (insertResult) {
         case (#err(errMsg)) {
-        return "Test Failed: Record insertion failed with error: " # errMsg;
+            return "Test Failed: Record insertion failed with error: " # errMsg;
         };
         case (#ok(true)) {
-        Debug.print("✅ Record inserted successfully.");
+            Debug.print("✅ Record inserted successfully.");
         };
         case (#ok(false)) {
-        return "Test Failed: Record insertion returned false.";
+            return "Test Failed: Record insertion returned false.";
         };
     };
 
-        let result = await QuikDB.getRecordSizes("Student");
-
-        // Check if the result is an error or ok, and return a debug-friendly output
-        switch (result) {
-            case (#err(errMsg)) {
-                return "Error: " # errMsg;
-            };
-            case( #ok(sizes)) {
-                // Convert the list of sizes to a string for easier inspection
-                let sizeList = Array.foldLeft<Text, Text>(sizes, "", func(acc, sizeText) {
-                    acc # sizeText # "\n";
-                });
-                return "Sizes: \n" # sizeList;
-            };
+    let insertResult1 = await QuikDB.insertData("Student", record2);
+    switch (insertResult1) {
+        case (#err(errMsg)) {
+            return "Test Failed: Record2 insertion failed with error: " # errMsg;
+        };
+        case (#ok(true)) {
+            Debug.print("✅ Record2 inserted successfully.");
+        };
+        case (#ok(false)) {
+            return "Test Failed: Record2 insertion returned false.";
         };
     };
+
+    let insertResultw = await QuikDB.insertData("Student", record3);
+    switch (insertResultw) {
+        case (#err(errMsg)) {
+            return "Test Failed: Record3 insertion failed with error: " # errMsg;
+        };
+        case (#ok(true)) {
+            Debug.print("✅ Record3 inserted successfully.");
+        };
+        case (#ok(false)) {
+            return "Test Failed: Record3 insertion returned false.";
+        };
+    };
+
+    // Step 2: Call the updated function
+    let result = await QuikDB.getMetrics("Student");
+
+    // Step 3: Verify the result
+    switch (result) {
+        case (#ok((totalSize, schemaCount))) {
+            Debug.print("✅ Total record size: " # Int.toText(totalSize) # " bytes.");
+            Debug.print("✅ Total number of schemas: " # Int.toText(schemaCount));
+            return "Test passed: Total size is " # Int.toText(totalSize) # " bytes, total schemas: " # Int.toText(schemaCount);
+        };
+        case (#err(errorMsg)) {
+            return "Test failed: " # errorMsg;
+        };
+    };
+};
+
+
     // Test function for listSchemas
-    public  func testListSchemas(): async Text {
-    // Step 1: Create a few schemas
-    let _ = await QuikDB.createSchema("Users", [{ name = "name"; fieldType = "Text" }, { name = "age"; fieldType = "Int" }], ["name"]);
-    let _ = await QuikDB.createSchema("Products", [{ name = "productName"; fieldType = "Text" }, { name = "price"; fieldType = "Float" }], ["productName"]);
+        public  func testListSchemas(): async Text {
+            // Step 1: Create a few schemas
+            let _ = await QuikDB.createSchema("Users", [{ name = "name"; fieldType = "Text" }, { name = "age"; fieldType = "Int" }], ["name"]);
+            let _ = await QuikDB.createSchema("Products", [{ name = "productName"; fieldType = "Text" }, { name = "price"; fieldType = "Float" }], ["productName"]);
 
-    // Step 2: List all schemas
-    let schemaNames = await QuikDB.listSchemas();
-    let schemaNamesString = Array.foldLeft<Text, Text>(schemaNames, "", func(acc, schemaName) {
-        acc # schemaName # ", ";
-    });
-    Debug.print("✅ Schemas listed successfully: " # schemaNamesString);
+            // Step 2: List all schemas
+            let schemaNames = await QuikDB.listSchemas();
+            let schemaNamesString = Array.foldLeft<Text, Text>(schemaNames, "", func(acc, schemaName) {
+                acc # schemaName # ", ";
+            });
+            Debug.print("✅ Schemas listed successfully: " # schemaNamesString);
 
-    return schemaNamesString;
+            return schemaNamesString;
 
-    };
-
+        };
 };
