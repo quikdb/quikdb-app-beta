@@ -354,6 +354,31 @@ public shared func noOfSchema(): async Int {
         };
       };
   };
+  public query func getAllRecords(schemaName: Text): async Result<[Record], Text> {
+    // Retrieve the records for the specified schema
+    let schemaRecordsOpt = records.get(schemaName);
+    switch (schemaRecordsOpt) {
+        case null {
+            return #err("Schema not found or no records exist!");
+        };
+        case (?schemaRecords) {
+            // Convert the schema records to an array of `Record`
+            let recordsArray = Array.map<(Text, { fields: [(Text, Text)] }), Record>(
+                Iter.toArray(schemaRecords.entries()),
+                func(entry: (Text, { fields: [(Text, Text)] })): Record {
+                    let (recordId, recordData) = entry;
+                    {
+                        id = recordId;
+                        fields = recordData.fields;
+                    };
+                }
+            );
+            return #ok(recordsArray);
+        };
+    };
+};
+
+
   public shared func updateData(
     schemaName: Text,
     recordId: Text,
