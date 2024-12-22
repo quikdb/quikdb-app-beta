@@ -8,8 +8,12 @@ import Iter "mo:base/Iter";
 import Debug "mo:base/Debug";
 
 
+
+
 actor QuikDB {
   private var owner: Principal = Principal.fromText("2vxsx-fae");
+  private var totalRecordSize: Int = 0;
+
 
   type Field = {
     name: Text;
@@ -53,6 +57,127 @@ actor QuikDB {
   private let records = TrieMap.TrieMap<Text, TrieMap.TrieMap<Text, Record>>(Text.equal, Text.hash);
   
   
+ public func getMetrics(schemaName: Text): async Result<(Int, Int), Text> {
+    // Retrieve the records for the schema
+    let schemaRecordsOpt = records.get(schemaName);
+    
+    // Get the total number of schemas
+    let schemaLenSize = await noOfSchema(); // Assuming noOfSchema() is an async function
+
+    switch (schemaRecordsOpt) {
+        case null {
+            return #err("Schema not found or no records exist!");
+        };
+        case (?schemaRecords) {
+            // Convert the iterator to an array
+            let entriesArray = Iter.toArray(schemaRecords.entries());
+            
+            // Calculate the total size of all records
+            let totalSize = Array.foldLeft<(Text, { fields: [(Text, Text)] }), Int>(
+                entriesArray,
+                0,
+                func(acc: Int, entry: (Text, { fields: [(Text, Text)] })): Int {
+                    let (_, record) = entry;
+                    let recordSize = Array.foldLeft<(Text, Text), Int>(
+                        record.fields,
+                        0,
+                        func(innerAcc: Int, field: (Text, Text)): Int {
+                            let (fieldName, fieldValue) = field;
+                            innerAcc + fieldName.size() + fieldValue.size();
+                        }
+                    );
+                    acc + recordSize;
+                }
+            );
+            
+            // Save the total size to the state variable
+            totalRecordSize := totalSize;
+
+            // Return a tuple with total size and the number of schemas
+            return #ok(totalSize, schemaLenSize);
+        };
+    };
+};
+
+  public  func getRecordSizes(schemaName: Text): async Result<[Text], Text> {
+    // Retrieve the records for the schema
+    let schemaRecordsOpt = records.get(schemaName);
+  
+    switch (schemaRecordsOpt) {
+        case null {
+            return #err("Schema not found or no records exist!");
+        };
+        case (?schemaRecords) {
+            var sizes: [Text] = [];
+            for ((recordId, record) in schemaRecords.entries()) {
+                // Calculate the size of the record using foldLeft
+                let size = Array.foldLeft<(Text, Text), Int>(
+                    record.fields,
+                    0,
+                    func(acc: Int, field: (Text, Text)): Int {
+                        let (fieldName, fieldValue) = field;
+                        acc + fieldName.size() + fieldValue.size();
+                    }
+                );
+                // Convert size to Text and append to sizes array
+                sizes := Array.append(sizes, [recordId # ": " # Int.toText(size) # " bytes"]);
+            };
+            let result = sizes;
+            return #ok(result);
+        };
+    };
+};
+
+public query func getRecord(schemaName: Text, recordId: Text): async Result<Text, Text> {
+    // Retrieve the records for the schema
+    let schemaRecordsOpt = records.get(schemaName);
+    switch (schemaRecordsOpt) {
+        case null {
+            return #err("Schema not found or no records exist!");
+        };
+        case (?schemaRecords) {
+            // Check if the record exists in the schema
+            switch (schemaRecords.get(recordId)) {
+                case null {
+                    return #err("Record not found!");
+                };
+                case (?record) {
+                    // Calculate the size of the record and collect field details
+                    var fieldDetails: [Text] = [];
+                    let size = Array.foldLeft<(Text, Text), Int>(
+                        record.fields,
+                        0,
+                        func(acc: Int, field: (Text, Text)): Int {
+                            let (fieldName, fieldValue) = field;
+                            // Collect field details in a human-readable format
+                            fieldDetails := Array.append(fieldDetails, [fieldName # ": " # fieldValue ]);
+                            acc + fieldName.size() + fieldValue.size();
+                        }
+                    );
+                    // Join the field details into a single Text string
+                    let fieldDetailsStr = Text.join("\n", Iter.fromArray(fieldDetails));
+                    // Return the size and field details
+                    let details = "Record ID: " # recordId # "\n" #
+                                  "Size: " # Int.toText(size) # " bytes\n" #
+                                  "Fields:\n" # fieldDetailsStr;
+                    return #ok(details);
+                };
+            };
+        };
+    };
+};
+
+
+// List all schemas created
+public query func listSchemas(): async [Text] {
+  Iter.toArray(schemas.keys())
+};
+// Return the total number of schemas
+public shared func noOfSchema(): async Int {
+    let schemaList = Iter.toArray(schemas.keys());
+    return Array.size(schemaList); // Return the size of the schema list
+};
+
 
   public func createSchema(
     schemaName: Text,
@@ -229,6 +354,31 @@ actor QuikDB {
         };
       };
   };
+  public query func getAllRecords(schemaName: Text): async Result<[Record], Text> {
+    // Retrieve the records for the specified schema
+    let schemaRecordsOpt = records.get(schemaName);
+    switch (schemaRecordsOpt) {
+        case null {
+            return #err("Schema not found or no records exist!");
+        };
+        case (?schemaRecords) {
+            // Convert the schema records to an array of `Record`
+            let recordsArray = Array.map<(Text, { fields: [(Text, Text)] }), Record>(
+                Iter.toArray(schemaRecords.entries()),
+                func(entry: (Text, { fields: [(Text, Text)] })): Record {
+                    let (recordId, recordData) = entry;
+                    {
+                        id = recordId;
+                        fields = recordData.fields;
+                    };
+                }
+            );
+            return #ok(recordsArray);
+        };
+    };
+};
+
+
   public shared func updateData(
     schemaName: Text,
     recordId: Text,
