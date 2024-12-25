@@ -211,10 +211,3 @@ Allows searching by multiple indexed fields. For each (fieldName, value) pair, i
 
 10. Conclusion
     QuikDB is a straightforward way to store and index records on the Internet Computer. It’s ideal for small-to-medium use cases where you need a quick solution for storing data and performing queries. By understanding these components—schemas, records, indexes, and their associated CRUD operations—you can maintain and extend QuikDB to fit your particular needs.
-
-For production scenarios or more advanced features, consider:
-
-Stabilizing storage (stable var).
-Adding access control.
-Implementing stricter field type checks.
-Guarding against record ID collisions as needed.
