@@ -37,7 +37,7 @@ actor QuikDB {
     fields: [(Text, Text)];  // Array of (fieldName, value) pairs
   };
     // Initialization function (custom "constructor")
-    public func initOwner(initOwner: Principal): async Bool {
+    public shared func initOwner(initOwner: Principal): async Bool {
         if (Principal.isAnonymous(owner)) { // Ensure it can only be initialized once
             owner := initOwner;
             return true;
@@ -47,7 +47,7 @@ actor QuikDB {
     };
 
     // Getter function for the owner
-        public query func getOwner(): async Principal {
+        public shared query func getOwner(): async Principal {
             owner;
         };
 
@@ -57,7 +57,7 @@ actor QuikDB {
   private let records = TrieMap.TrieMap<Text, TrieMap.TrieMap<Text, Record>>(Text.equal, Text.hash);
   
   
- public func getMetrics(schemaName: Text): async Result<(Int, Int), Text> {
+ public shared func getMetrics(schemaName: Text): async Result<(Int, Int), Text> {
     // Retrieve the records for the schema
     let schemaRecordsOpt = records.get(schemaName);
     
@@ -99,7 +99,7 @@ actor QuikDB {
     };
 };
 
-  public  func getRecordSizes(schemaName: Text): async Result<[Text], Text> {
+  public shared func getRecordSizes(schemaName: Text): async Result<[Text], Text> {
     // Retrieve the records for the schema
     let schemaRecordsOpt = records.get(schemaName);
   
@@ -128,7 +128,7 @@ actor QuikDB {
     };
 };
 
-public query func getRecord(schemaName: Text, recordId: Text): async Result<Text, Text> {
+public shared query func getRecord(schemaName: Text, recordId: Text): async Result<Text, Text> {
     // Retrieve the records for the schema
     let schemaRecordsOpt = records.get(schemaName);
     switch (schemaRecordsOpt) {
@@ -169,7 +169,7 @@ public query func getRecord(schemaName: Text, recordId: Text): async Result<Text
 
 
 // List all schemas created
-public query func listSchemas(): async [Text] {
+public shared query func listSchemas(): async [Text] {
   Iter.toArray(schemas.keys())
 };
 // Return the total number of schemas
@@ -179,7 +179,7 @@ public shared func noOfSchema(): async Int {
 };
 
 
-  public func createSchema(
+  public shared func createSchema(
     schemaName: Text,
     customFields: [Field],
     userDefinedIndexes: [Text]
@@ -238,7 +238,7 @@ public shared func noOfSchema(): async Int {
     return #ok(true);
   };
 
-  public query func getSchema(schemaName: Text) : async ?Schema {
+  public shared query func getSchema(schemaName: Text) : async ?Schema {
     schemas.get(schemaName);
   };
   public shared func deleteSchema(schemaName: Text): async Result<Bool, Text> {
@@ -354,7 +354,7 @@ public shared func noOfSchema(): async Int {
         };
       };
   };
-  public query func getAllRecords(schemaName: Text): async Result<[Record], Text> {
+  public shared query func getAllRecords(schemaName: Text): async Result<[Record], Text> {
     // Retrieve the records for the specified schema
     let schemaRecordsOpt = records.get(schemaName);
     switch (schemaRecordsOpt) {
@@ -554,7 +554,7 @@ public shared func noOfSchema(): async Int {
     };
   };
  // Query data using an index
-  public query func queryByIndex(schemaName: Text, indexName: Text, value: Text) : async ?[Text] {
+  public shared query func queryByIndex(schemaName: Text, indexName: Text, value: Text) : async ?[Text] {
       let indexKey = schemaName # "." # indexName;
       Debug.print("🔍 Querying index key: " # indexKey # " for value: " # value);
 
@@ -666,7 +666,7 @@ public shared func noOfSchema(): async Int {
     };
   };
    // Helper function to get record by ID
-  public query func getRecordById(schemaName: Text, recordId: Text) : async ?Record {
+  public shared query func getRecordById(schemaName: Text, recordId: Text) : async ?Record {
     let schemaRecords = records.get(schemaName);
     switch (schemaRecords) {
       case null {
