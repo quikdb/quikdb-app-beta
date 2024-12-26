@@ -741,7 +741,7 @@ actor QuikDB {
     };
   };
  //Helper function:: Query data using an index
-  public query func queryByIndex(schemaName: Text, indexName: Text, value: Text) : async ?[Text] {
+  private query func queryByIndex(schemaName: Text, indexName: Text, value: Text) : async ?[Text] {
       let indexKey = schemaName # "." # indexName;
       Debug.print("🔍 Querying index key: " # indexKey # " for value: " # value);
 
@@ -759,7 +759,7 @@ actor QuikDB {
       };
   };
    // Helper function to get record by ID
-  public query func getRecordById(schemaName: Text, recordId: Text) : async ?Record {
+  private query func getRecordById(schemaName: Text, recordId: Text) : async ?Record {
     let schemaRecords = records.get(schemaName);
     switch (schemaRecords) {
       case null {
