@@ -36,7 +36,7 @@ actor QuikDB {
     id: Text;
     fields: [(Text, Text)];  // Array of (fieldName, value) pairs
   };
-    // Initialization function (custom "constructor")
+
     public func initOwner(initOwner: Principal): async Bool {
         if (Principal.isAnonymous(owner)) { // Ensure it can only be initialized once
             owner := initOwner;
@@ -56,13 +56,72 @@ actor QuikDB {
   private let indexes = TrieMap.TrieMap<Text, TrieMap.TrieMap<Text, [Text]>>(Text.equal, Text.hash);
   private let records = TrieMap.TrieMap<Text, TrieMap.TrieMap<Text, Record>>(Text.equal, Text.hash);
   
-  
+ 
+public func createSchema(
+    schemaName: Text,
+    customFields: [Field],
+    userDefinedIndexes: [Text]
+  ) : async Result<Bool, Text> {
+    // Check if the schema already exists
+    if (schemas.get(schemaName) != null) {
+      return #err("A schema with this name already exists!");
+    };
+
+    // Validate user-defined indexes
+    if (userDefinedIndexes.size() > 2) {
+      return #err("You can define up to 2 indexes only.");
+    };
+
+    // Add default fields
+    let defaultFields: [Field] = [
+      { name = "creation_timestamp"; fieldType = "timestamp" },
+      { name = "update_timestamp"; fieldType = "timestamp" }
+    ];
+
+    // Combine default fields with user-provided fields
+    let allFields = Array.append(customFields, defaultFields);
+
+    // Convert arrays to iterators for loops
+    for (index in userDefinedIndexes.vals()) {
+      var isValidIndex = false;
+      label indexCheck for (field in allFields.vals()) {
+        if (field.name == index) {
+          isValidIndex := true;
+          break indexCheck;
+        };
+      };
+      if (not isValidIndex) {
+        return #err("Index '" # index # "' is not a valid field in the schema.");
+      };
+    };
+
+    // Create a new schema
+    let newSchema: Schema = {
+      schemaName = schemaName;
+      fields = allFields;
+      indexes = userDefinedIndexes;
+      createdAt = Time.now();
+    };
+
+    // Insert the schema into the TrieMap
+    schemas.put(schemaName, newSchema);
+
+    // Initialize empty indexes
+    for (index in userDefinedIndexes.vals()) {
+      indexes.put(schemaName # "." # index, TrieMap.TrieMap<Text, [Text]>(Text.equal, Text.hash));
+    };
+     // Initialize empty record storage for the schema
+    records.put(schemaName, TrieMap.TrieMap<Text, Record>(Text.equal, Text.hash));
+
+    return #ok(true);
+  };
+ 
  public func getMetrics(schemaName: Text): async Result<(Int, Int), Text> {
     // Retrieve the records for the schema
     let schemaRecordsOpt = records.get(schemaName);
     
     // Get the total number of schemas
-    let schemaLenSize = await noOfSchema(); // Assuming noOfSchema() is an async function
+    let schemaLenSize = await noOfSchema(); 
 
     switch (schemaRecordsOpt) {
         case null {
@@ -179,65 +238,6 @@ public shared func noOfSchema(): async Int {
 };
 
 
-  public func createSchema(
-    schemaName: Text,
-    customFields: [Field],
-    userDefinedIndexes: [Text]
-  ) : async Result<Bool, Text> {
-    // Check if the schema already exists
-    if (schemas.get(schemaName) != null) {
-      return #err("A schema with this name already exists!");
-    };
-
-    // Validate user-defined indexes
-    if (userDefinedIndexes.size() > 2) {
-      return #err("You can define up to 2 indexes only.");
-    };
-
-    // Add default fields
-    let defaultFields: [Field] = [
-      { name = "creation_timestamp"; fieldType = "timestamp" },
-      { name = "update_timestamp"; fieldType = "timestamp" }
-    ];
-
-    // Combine default fields with user-provided fields
-    let allFields = Array.append(customFields, defaultFields);
-
-    // Convert arrays to iterators for loops
-    for (index in userDefinedIndexes.vals()) {
-      var isValidIndex = false;
-      label indexCheck for (field in allFields.vals()) {
-        if (field.name == index) {
-          isValidIndex := true;
-          break indexCheck;
-        };
-      };
-      if (not isValidIndex) {
-        return #err("Index '" # index # "' is not a valid field in the schema.");
-      };
-    };
-
-    // Create a new schema
-    let newSchema: Schema = {
-      schemaName = schemaName;
-      fields = allFields;
-      indexes = userDefinedIndexes;
-      createdAt = Time.now();
-    };
-
-    // Insert the schema into the TrieMap
-    schemas.put(schemaName, newSchema);
-
-    // Initialize empty indexes
-    for (index in userDefinedIndexes.vals()) {
-      indexes.put(schemaName # "." # index, TrieMap.TrieMap<Text, [Text]>(Text.equal, Text.hash));
-    };
-     // Initialize empty record storage for the schema
-    records.put(schemaName, TrieMap.TrieMap<Text, Record>(Text.equal, Text.hash));
-
-    return #ok(true);
-  };
-
   public query func getSchema(schemaName: Text) : async ?Schema {
     schemas.get(schemaName);
   };
@@ -286,74 +286,84 @@ public shared func noOfSchema(): async Int {
     };
   };
   // Insert data into the schema and update indexes
-  public shared func insertData(schemaName: Text, record: Record) : async Result<Bool, Text> {
-      // Convert Record to TrieMap internally for field validation
-      let recordMap = TrieMap.fromEntries<Text, Text>(record.fields.vals(), Text.equal, Text.hash);
+  public shared func insertData(schemaName: Text, record: Record): async Result<Bool, Text> {
+    // Convert Record to TrieMap internally for field validation
+    let recordMap = TrieMap.fromEntries<Text, Text>(record.fields.vals(), Text.equal, Text.hash);
 
-      // Check if schema exists
-      let schema = schemas.get(schemaName);
-      switch (schema) {
+    // Check if schema exists
+    let schema = schemas.get(schemaName);
+    switch (schema) {
         case null {
-          return #err("Schema not found!");
+            return #err("Schema not found!");
         };
         case (?schema) {
-          // Validate fields
-          for (field in schema.fields.vals()) {
-            if (recordMap.get(field.name) == null) {
-              return #err("Field '" # field.name # "' is missing in the record.");
-            };
-          };
-
-          // Use record.id directly
-          let recordId = record.id;
-
-          // Store the record in the records TrieMap
-          let schemaRecords = records.get(schemaName);
-          switch (schemaRecords) {
-            case null {
-              return #err("Record storage for schema not initialized properly.");
-            };
-            case (?schemaRecords) {
-              schemaRecords.put(recordId, record);
-            };
-          };
-
-          // Update indexes
-          for (index in schema.indexes.vals()) {
-            let indexKey = schemaName # "." # index;
-            let indexMap = indexes.get(indexKey);
-            switch (indexMap) {
-              case null {
-                return #err("Index '" # index # "' not initialized properly.");
-              };
-              case (?indexMap) {
-                let fieldValue = recordMap.get(index);
-                switch (fieldValue) {
-                  case null {
-                    return #err("Field '" # index # "' is missing in the record.");
-                  };
-                  case (?fieldValue) {
-                    let records = indexMap.get(fieldValue);
-                    switch (records) {
-                      case null {
-                        // Insert the actual record ID
-                        indexMap.put(fieldValue, [recordId]);
-                      };
-                      case (?records) {
-                        // Append the new record ID to existing list
-                        indexMap.put(fieldValue, Array.append(records, [recordId]));
-                      };
-                    };
-                  };
+            // Validate fields
+            for (field in schema.fields.vals()) {
+                if (recordMap.get(field.name) == null) {
+                    return #err("Field '" # field.name # "' is missing in the record.");
                 };
-              };
             };
-          };
 
-          return #ok(true);
+            // Use record.id directly
+            let recordId = record.id;
+
+            // Check if the record ID already exists
+            let schemaRecords = records.get(schemaName);
+            switch (schemaRecords) {
+                case null {
+                    return #err("Record storage for schema not initialized properly.");
+                };
+                case (?schemaRecords) {
+                    if (schemaRecords.get(recordId) != null) {
+                        return #err("Record with ID '" # recordId # "' already exists. Insertion aborted.");
+                    };
+                    schemaRecords.put(recordId, record); // Store the new record
+                };
+            };
+
+            // Update indexes
+            for (index in schema.indexes.vals()) {
+                let indexKey = schemaName # "." # index;
+                let indexMap = indexes.get(indexKey);
+                switch (indexMap) {
+                    case null {
+                        return #err("Index '" # index # "' not initialized properly.");
+                    };
+                    case (?indexMap) {
+                        let fieldValue = recordMap.get(index);
+                        switch (fieldValue) {
+                            case null {
+                                return #err("Field '" # index # "' is missing in the record.");
+                            };
+                            case (?fieldValue) {
+                                // Check for uniqueness
+                                let recordsWithIndex = indexMap.get(fieldValue);
+                                switch (recordsWithIndex) {
+                                    case (?existingRecords) {
+                                        if (Array.size(existingRecords) > 0) {
+                                            return #err("Record with the same value for indexed field '" # index # "' already exists.");
+                                        };
+                                    };
+                                    case null {
+                                        // No records exist for this indexed value, continue
+                                    };
+                                };
+
+                                // Insert the actual record ID into the index
+                                indexMap.put(fieldValue, [recordId]);
+                            };
+                        };
+                    };
+                };
+            };
+
+            return #ok(true);
         };
-      };
-  };
+    };
+};
+
+
+
   public query func getAllRecords(schemaName: Text): async Result<[Record], Text> {
     // Retrieve the records for the specified schema
     let schemaRecordsOpt = records.get(schemaName);
@@ -553,7 +563,7 @@ public shared func noOfSchema(): async Int {
       };
     };
   };
- // Query data using an index
+ //Helper function:: Query data using an index
   public query func queryByIndex(schemaName: Text, indexName: Text, value: Text) : async ?[Text] {
       let indexKey = schemaName # "." # indexName;
       Debug.print("🔍 Querying index key: " # indexKey # " for value: " # value);
