@@ -57,66 +57,251 @@ actor QuikDB {
   private let records = TrieMap.TrieMap<Text, TrieMap.TrieMap<Text, Record>>(Text.equal, Text.hash);
   
  
-public func createSchema(
-    schemaName: Text,
-    customFields: [Field],
-    userDefinedIndexes: [Text]
-  ) : async Result<Bool, Text> {
-    // Check if the schema already exists
-    if (schemas.get(schemaName) != null) {
-      return #err("A schema with this name already exists!");
-    };
+  public func createSchema(
+      schemaName: Text,
+      customFields: [Field],
+      userDefinedIndexes: [Text]
+    ) : async Result<Bool, Text> {
+      // Check if the schema already exists
+      if (schemas.get(schemaName) != null) {
+        return #err("A schema with this name already exists!");
+      };
 
-    // Validate user-defined indexes
-    if (userDefinedIndexes.size() > 2) {
-      return #err("You can define up to 2 indexes only.");
-    };
+      // Validate user-defined indexes
+      if (userDefinedIndexes.size() > 2) {
+        return #err("You can define up to 2 indexes only.");
+      };
 
-    // Add default fields
-    let defaultFields: [Field] = [
-      { name = "creation_timestamp"; fieldType = "timestamp" },
-      { name = "update_timestamp"; fieldType = "timestamp" }
-    ];
+      // Add default fields
+      let defaultFields: [Field] = [
+        { name = "creation_timestamp"; fieldType = "timestamp" },
+        { name = "update_timestamp"; fieldType = "timestamp" }
+      ];
 
-    // Combine default fields with user-provided fields
-    let allFields = Array.append(customFields, defaultFields);
+      // Combine default fields with user-provided fields
+      let allFields = Array.append(customFields, defaultFields);
 
-    // Convert arrays to iterators for loops
-    for (index in userDefinedIndexes.vals()) {
-      var isValidIndex = false;
-      label indexCheck for (field in allFields.vals()) {
-        if (field.name == index) {
-          isValidIndex := true;
-          break indexCheck;
+      // Convert arrays to iterators for loops
+      for (index in userDefinedIndexes.vals()) {
+        var isValidIndex = false;
+        label indexCheck for (field in allFields.vals()) {
+          if (field.name == index) {
+            isValidIndex := true;
+            break indexCheck;
+          };
+        };
+        if (not isValidIndex) {
+          return #err("Index '" # index # "' is not a valid field in the schema.");
         };
       };
-      if (not isValidIndex) {
-        return #err("Index '" # index # "' is not a valid field in the schema.");
+
+      // Create a new schema
+      let newSchema: Schema = {
+        schemaName = schemaName;
+        fields = allFields;
+        indexes = userDefinedIndexes;
+        createdAt = Time.now();
       };
-    };
 
-    // Create a new schema
-    let newSchema: Schema = {
-      schemaName = schemaName;
-      fields = allFields;
-      indexes = userDefinedIndexes;
-      createdAt = Time.now();
-    };
+      // Insert the schema into the TrieMap
+      schemas.put(schemaName, newSchema);
 
-    // Insert the schema into the TrieMap
-    schemas.put(schemaName, newSchema);
+      // Initialize empty indexes
+      for (index in userDefinedIndexes.vals()) {
+        indexes.put(schemaName # "." # index, TrieMap.TrieMap<Text, [Text]>(Text.equal, Text.hash));
+      };
+      // Initialize empty record storage for the schema
+      records.put(schemaName, TrieMap.TrieMap<Text, Record>(Text.equal, Text.hash));
 
-    // Initialize empty indexes
-    for (index in userDefinedIndexes.vals()) {
-      indexes.put(schemaName # "." # index, TrieMap.TrieMap<Text, [Text]>(Text.equal, Text.hash));
-    };
-     // Initialize empty record storage for the schema
-    records.put(schemaName, TrieMap.TrieMap<Text, Record>(Text.equal, Text.hash));
-
-    return #ok(true);
+      return #ok(true);
   };
  
- public func getMetrics(schemaName: Text): async Result<(Int, Int), Text> {
+  // Insert data into the schema and update indexes
+  public shared func insertData(schemaName: Text, record: Record): async Result<Bool, Text> {
+      // Convert Record to TrieMap internally for field validation
+      let recordMap = TrieMap.fromEntries<Text, Text>(record.fields.vals(), Text.equal, Text.hash);
+
+      // Check if schema exists
+      let schema = schemas.get(schemaName);
+      switch (schema) {
+          case null {
+              return #err("Schema not found!");
+          };
+          case (?schema) {
+              // Validate fields
+              for (field in schema.fields.vals()) {
+                  if (recordMap.get(field.name) == null) {
+                      return #err("Field '" # field.name # "' is missing in the record.");
+                  };
+              };
+
+              // Use record.id directly
+              let recordId = record.id;
+
+              // Check if the record ID already exists
+              let schemaRecords = records.get(schemaName);
+              switch (schemaRecords) {
+                  case null {
+                      return #err("Record storage for schema not initialized properly.");
+                  };
+                  case (?schemaRecords) {
+                      if (schemaRecords.get(recordId) != null) {
+                          return #err("Record with ID '" # recordId # "' already exists. Insertion aborted.");
+                      };
+                      schemaRecords.put(recordId, record); // Store the new record
+                  };
+              };
+
+              // Update indexes
+              for (index in schema.indexes.vals()) {
+                  let indexKey = schemaName # "." # index;
+                  let indexMap = indexes.get(indexKey);
+                  switch (indexMap) {
+                      case null {
+                          return #err("Index '" # index # "' not initialized properly.");
+                      };
+                      case (?indexMap) {
+                          let fieldValue = recordMap.get(index);
+                          switch (fieldValue) {
+                              case null {
+                                  return #err("Field '" # index # "' is missing in the record.");
+                              };
+                              case (?fieldValue) {
+                                  // Check for uniqueness
+                                  let recordsWithIndex = indexMap.get(fieldValue);
+                                  switch (recordsWithIndex) {
+                                      case (?existingRecords) {
+                                          if (Array.size(existingRecords) > 0) {
+                                              return #err("Record with the same value for indexed field '" # index # "' already exists.");
+                                          };
+                                      };
+                                      case null {
+                                          // No records exist for this indexed value, continue
+                                      };
+                                  };
+
+                                  // Insert the actual record ID into the index
+                                  indexMap.put(fieldValue, [recordId]);
+                              };
+                          };
+                      };
+                  };
+              };
+
+              return #ok(true);
+          };
+      };
+  };
+  public shared func updateData(
+      schemaName: Text,
+      recordId: Text,
+      updatedFields: [(Text, Text)]
+    ) : async Result<Bool, Text> {
+      // Fetch the schema
+      let schemaOpt = schemas.get(schemaName);
+      switch (schemaOpt) {
+        case null {
+          return #err("Schema not found!");
+        };
+        case (?schema) {
+          // Get the existing record
+          let schemaRecordsOpt = records.get(schemaName);
+          switch (schemaRecordsOpt) {
+            case null {
+              return #err("Record storage for schema not initialized properly.");
+            };
+            case (?schemaRecords) {
+              let existingRecordOpt = schemaRecords.get(recordId);
+              switch (existingRecordOpt) {
+                case null {
+                  return #err("Record with ID '" # recordId # "' not found!");
+                };
+                case (?existingRecord) {
+                  // Convert Record fields to TrieMap for easier updates
+                  var recordMap = TrieMap.fromEntries<Text, Text>(existingRecord.fields.vals(), Text.equal, Text.hash);
+
+                  // Apply updates
+                  for (fieldUpdate in updatedFields.vals()) {
+                    let (fieldName, newValue) = fieldUpdate;
+                    // Validate if the field exists in the schema
+                  let fieldOpt: ?Field = Array.find(schema.fields, func(field: Field): Bool { field.name == fieldName });
+                  switch (fieldOpt) {
+                    case null {
+                      return #err("Field '" # fieldName # "' does not exist in the schema!");
+                    };
+                    case (?_) {
+                      recordMap.put(fieldName, newValue);
+                    };
+                  };
+
+                  };
+
+                  // Update the `update_timestamp` field
+                  recordMap.put("update_timestamp", Int.toText(Time.now()));
+
+                  // Remove record from outdated index values
+                for (index in schema.indexes.vals()) { 
+                    let indexKey = schemaName # "." # index;
+                    let indexMapOpt = indexes.get(indexKey);
+                    switch (indexMapOpt) {
+                      case null {};
+                      case (?indexMap) {
+                        let oldValueOpt = Array.find<(Text, Text)>(existingRecord.fields, func(field: (Text, Text)): Bool { field.0 == index });
+                        switch (oldValueOpt) {
+                          case null {};
+                          case (?oldValue) {
+                            let updatedIndexRecordsOpt = indexMap.get(oldValue.1);
+                            switch (updatedIndexRecordsOpt) {
+                              case null {};
+                              case (?updatedIndexRecords) {
+                                let filteredRecords = Array.filter<Text>(updatedIndexRecords, func(rId: Text): Bool { rId != recordId });
+                                indexMap.put(oldValue.1, filteredRecords);
+                              };
+                            };
+                          };
+                        };
+                      };
+                    };
+                  };
+
+                  // Add record to updated index values
+                  for (index in schema.indexes.vals()) {
+                    let indexKey = schemaName # "." # index;
+                    let indexMapOpt = indexes.get(indexKey);
+                    switch (indexMapOpt) {
+                      case null {};
+                      case (?indexMap) {
+                        let newValueOpt = recordMap.get(index);
+                        switch (newValueOpt) {
+                          case null {};
+                          case (?newValue) {
+                            let indexedRecordsOpt = indexMap.get(newValue);
+                            switch (indexedRecordsOpt) {
+                              case null {
+                                indexMap.put(newValue, [recordId]);
+                              };
+                              case (?indexedRecords) {
+                                indexMap.put(newValue, Array.append(indexedRecords, [recordId]));
+                              };
+                            };
+                          };
+                        };
+                      };
+                    };
+                  };
+
+                  // Commit the updated record back to `schemaRecords`
+                  schemaRecords.put(recordId, { id = recordId; fields = Iter.toArray(recordMap.entries()) });
+
+                  return #ok(true);
+                };
+              };
+            };
+          };
+        };
+      };
+  };
+  public func getMetrics(schemaName: Text): async Result<(Int, Int), Text> {
     // Retrieve the records for the schema
     let schemaRecordsOpt = records.get(schemaName);
     
@@ -155,347 +340,6 @@ public func createSchema(
             // Return a tuple with total size and the number of schemas
             return #ok(totalSize, schemaLenSize);
         };
-    };
-};
-
-  public  func getRecordSizes(schemaName: Text): async Result<[Text], Text> {
-    // Retrieve the records for the schema
-    let schemaRecordsOpt = records.get(schemaName);
-  
-    switch (schemaRecordsOpt) {
-        case null {
-            return #err("Schema not found or no records exist!");
-        };
-        case (?schemaRecords) {
-            var sizes: [Text] = [];
-            for ((recordId, record) in schemaRecords.entries()) {
-                // Calculate the size of the record using foldLeft
-                let size = Array.foldLeft<(Text, Text), Int>(
-                    record.fields,
-                    0,
-                    func(acc: Int, field: (Text, Text)): Int {
-                        let (fieldName, fieldValue) = field;
-                        acc + fieldName.size() + fieldValue.size();
-                    }
-                );
-                // Convert size to Text and append to sizes array
-                sizes := Array.append(sizes, [recordId # ": " # Int.toText(size) # " bytes"]);
-            };
-            let result = sizes;
-            return #ok(result);
-        };
-    };
-};
-
-public query func getRecord(schemaName: Text, recordId: Text): async Result<Text, Text> {
-    // Retrieve the records for the schema
-    let schemaRecordsOpt = records.get(schemaName);
-    switch (schemaRecordsOpt) {
-        case null {
-            return #err("Schema not found or no records exist!");
-        };
-        case (?schemaRecords) {
-            // Check if the record exists in the schema
-            switch (schemaRecords.get(recordId)) {
-                case null {
-                    return #err("Record not found!");
-                };
-                case (?record) {
-                    // Calculate the size of the record and collect field details
-                    var fieldDetails: [Text] = [];
-                    let size = Array.foldLeft<(Text, Text), Int>(
-                        record.fields,
-                        0,
-                        func(acc: Int, field: (Text, Text)): Int {
-                            let (fieldName, fieldValue) = field;
-                            // Collect field details in a human-readable format
-                            fieldDetails := Array.append(fieldDetails, [fieldName # ": " # fieldValue ]);
-                            acc + fieldName.size() + fieldValue.size();
-                        }
-                    );
-                    // Join the field details into a single Text string
-                    let fieldDetailsStr = Text.join("\n", Iter.fromArray(fieldDetails));
-                    // Return the size and field details
-                    let details = "Record ID: " # recordId # "\n" #
-                                  "Size: " # Int.toText(size) # " bytes\n" #
-                                  "Fields:\n" # fieldDetailsStr;
-                    return #ok(details);
-                };
-            };
-        };
-    };
-};
-
-
-// List all schemas created
-public query func listSchemas(): async [Text] {
-  Iter.toArray(schemas.keys())
-};
-// Return the total number of schemas
-public shared func noOfSchema(): async Int {
-    let schemaList = Iter.toArray(schemas.keys());
-    return Array.size(schemaList); // Return the size of the schema list
-};
-
-
-  public query func getSchema(schemaName: Text) : async ?Schema {
-    schemas.get(schemaName);
-  };
-  public shared func deleteSchema(schemaName: Text): async Result<Bool, Text> {
-    // Check if the schema exists
-    let schemaOpt = schemas.get(schemaName);
-    switch (schemaOpt) {
-      case null {
-        return #err("Schema '" # schemaName # "' does not exist!");
-      };
-      case (?schema) {
-        // Remove all associated indexes
-        for (index in schema.indexes.vals()) {
-          let indexKey = schemaName # "." # index;
-          let removedIndexOpt = indexes.remove(indexKey);
-          switch (removedIndexOpt) {
-            case null {
-              Debug.print("⚠️ Index '" # indexKey # "' was not found during deletion.");
-            };
-            case (?_removedIndex) {
-              Debug.print("✅ Index '" # indexKey # "' deleted successfully.");
-            };
-          };
-        };
-
-        // Remove all associated records
-        let removedRecordsOpt = records.remove(schemaName);
-        switch (removedRecordsOpt) {
-          case null {
-            Debug.print("⚠️ Records for schema '" # schemaName # "' were not found during deletion.");
-          };
-          case (?_removedRecords) {
-            Debug.print("✅ Records for schema '" # schemaName # "' deleted successfully.");
-          };
-        };
-
-        // Finally, remove the schema itself
-        let removedSchemaOpt = schemas.remove(schemaName);
-        if (removedSchemaOpt == null) {
-          return #err("Unexpected error: Schema '" # schemaName # "' could not be removed.");
-        } else {
-          Debug.print("✅ Schema '" # schemaName # "' deleted successfully.");
-          return #ok(true);
-        };
-      };
-    };
-  };
-  // Insert data into the schema and update indexes
-  public shared func insertData(schemaName: Text, record: Record): async Result<Bool, Text> {
-    // Convert Record to TrieMap internally for field validation
-    let recordMap = TrieMap.fromEntries<Text, Text>(record.fields.vals(), Text.equal, Text.hash);
-
-    // Check if schema exists
-    let schema = schemas.get(schemaName);
-    switch (schema) {
-        case null {
-            return #err("Schema not found!");
-        };
-        case (?schema) {
-            // Validate fields
-            for (field in schema.fields.vals()) {
-                if (recordMap.get(field.name) == null) {
-                    return #err("Field '" # field.name # "' is missing in the record.");
-                };
-            };
-
-            // Use record.id directly
-            let recordId = record.id;
-
-            // Check if the record ID already exists
-            let schemaRecords = records.get(schemaName);
-            switch (schemaRecords) {
-                case null {
-                    return #err("Record storage for schema not initialized properly.");
-                };
-                case (?schemaRecords) {
-                    if (schemaRecords.get(recordId) != null) {
-                        return #err("Record with ID '" # recordId # "' already exists. Insertion aborted.");
-                    };
-                    schemaRecords.put(recordId, record); // Store the new record
-                };
-            };
-
-            // Update indexes
-            for (index in schema.indexes.vals()) {
-                let indexKey = schemaName # "." # index;
-                let indexMap = indexes.get(indexKey);
-                switch (indexMap) {
-                    case null {
-                        return #err("Index '" # index # "' not initialized properly.");
-                    };
-                    case (?indexMap) {
-                        let fieldValue = recordMap.get(index);
-                        switch (fieldValue) {
-                            case null {
-                                return #err("Field '" # index # "' is missing in the record.");
-                            };
-                            case (?fieldValue) {
-                                // Check for uniqueness
-                                let recordsWithIndex = indexMap.get(fieldValue);
-                                switch (recordsWithIndex) {
-                                    case (?existingRecords) {
-                                        if (Array.size(existingRecords) > 0) {
-                                            return #err("Record with the same value for indexed field '" # index # "' already exists.");
-                                        };
-                                    };
-                                    case null {
-                                        // No records exist for this indexed value, continue
-                                    };
-                                };
-
-                                // Insert the actual record ID into the index
-                                indexMap.put(fieldValue, [recordId]);
-                            };
-                        };
-                    };
-                };
-            };
-
-            return #ok(true);
-        };
-    };
-};
-
-
-
-  public query func getAllRecords(schemaName: Text): async Result<[Record], Text> {
-    // Retrieve the records for the specified schema
-    let schemaRecordsOpt = records.get(schemaName);
-    switch (schemaRecordsOpt) {
-        case null {
-            return #err("Schema not found or no records exist!");
-        };
-        case (?schemaRecords) {
-            // Convert the schema records to an array of `Record`
-            let recordsArray = Array.map<(Text, { fields: [(Text, Text)] }), Record>(
-                Iter.toArray(schemaRecords.entries()),
-                func(entry: (Text, { fields: [(Text, Text)] })): Record {
-                    let (recordId, recordData) = entry;
-                    {
-                        id = recordId;
-                        fields = recordData.fields;
-                    };
-                }
-            );
-            return #ok(recordsArray);
-        };
-    };
-};
-
-
-  public shared func updateData(
-    schemaName: Text,
-    recordId: Text,
-    updatedFields: [(Text, Text)]
-  ) : async Result<Bool, Text> {
-    // Fetch the schema
-    let schemaOpt = schemas.get(schemaName);
-    switch (schemaOpt) {
-      case null {
-        return #err("Schema not found!");
-      };
-      case (?schema) {
-        // Get the existing record
-        let schemaRecordsOpt = records.get(schemaName);
-        switch (schemaRecordsOpt) {
-          case null {
-            return #err("Record storage for schema not initialized properly.");
-          };
-          case (?schemaRecords) {
-            let existingRecordOpt = schemaRecords.get(recordId);
-            switch (existingRecordOpt) {
-              case null {
-                return #err("Record with ID '" # recordId # "' not found!");
-              };
-              case (?existingRecord) {
-                // Convert Record fields to TrieMap for easier updates
-                var recordMap = TrieMap.fromEntries<Text, Text>(existingRecord.fields.vals(), Text.equal, Text.hash);
-
-                // Apply updates
-                for (fieldUpdate in updatedFields.vals()) {
-                  let (fieldName, newValue) = fieldUpdate;
-                  // Validate if the field exists in the schema
-                let fieldOpt: ?Field = Array.find(schema.fields, func(field: Field): Bool { field.name == fieldName });
-                switch (fieldOpt) {
-                  case null {
-                    return #err("Field '" # fieldName # "' does not exist in the schema!");
-                  };
-                  case (?_) {
-                    recordMap.put(fieldName, newValue);
-                  };
-                };
-
-                };
-
-                // Update the `update_timestamp` field
-                recordMap.put("update_timestamp", Int.toText(Time.now()));
-
-                // Remove record from outdated index values
-              for (index in schema.indexes.vals()) { 
-                  let indexKey = schemaName # "." # index;
-                  let indexMapOpt = indexes.get(indexKey);
-                  switch (indexMapOpt) {
-                    case null {};
-                    case (?indexMap) {
-                      let oldValueOpt = Array.find<(Text, Text)>(existingRecord.fields, func(field: (Text, Text)): Bool { field.0 == index });
-                      switch (oldValueOpt) {
-                        case null {};
-                        case (?oldValue) {
-                          let updatedIndexRecordsOpt = indexMap.get(oldValue.1);
-                          switch (updatedIndexRecordsOpt) {
-                            case null {};
-                            case (?updatedIndexRecords) {
-                               let filteredRecords = Array.filter<Text>(updatedIndexRecords, func(rId: Text): Bool { rId != recordId });
-                              indexMap.put(oldValue.1, filteredRecords);
-                            };
-                          };
-                        };
-                      };
-                    };
-                  };
-                };
-
-                // Add record to updated index values
-                for (index in schema.indexes.vals()) {
-                  let indexKey = schemaName # "." # index;
-                  let indexMapOpt = indexes.get(indexKey);
-                  switch (indexMapOpt) {
-                    case null {};
-                    case (?indexMap) {
-                      let newValueOpt = recordMap.get(index);
-                      switch (newValueOpt) {
-                        case null {};
-                        case (?newValue) {
-                          let indexedRecordsOpt = indexMap.get(newValue);
-                          switch (indexedRecordsOpt) {
-                            case null {
-                              indexMap.put(newValue, [recordId]);
-                            };
-                            case (?indexedRecords) {
-                              indexMap.put(newValue, Array.append(indexedRecords, [recordId]));
-                            };
-                          };
-                        };
-                      };
-                    };
-                  };
-                };
-
-                // Commit the updated record back to `schemaRecords`
-                schemaRecords.put(recordId, { id = recordId; fields = Iter.toArray(recordMap.entries()) });
-
-                return #ok(true);
-              };
-            };
-          };
-        };
-      };
     };
   };
   // Search by multiple fields (e.g., age and color)
@@ -563,25 +407,6 @@ public shared func noOfSchema(): async Int {
       };
     };
   };
- //Helper function:: Query data using an index
-  public query func queryByIndex(schemaName: Text, indexName: Text, value: Text) : async ?[Text] {
-      let indexKey = schemaName # "." # indexName;
-      Debug.print("🔍 Querying index key: " # indexKey # " for value: " # value);
-
-      let indexMap = indexes.get(indexKey);
-      switch (indexMap) {
-        case null {
-          Debug.print("❌ Index not found for key: " # indexKey);
-          return null;
-        };
-        case (?indexMap) {
-          let result = indexMap.get(value);
-          Debug.print("✅ Query result for value " # value # ": " # debug_show(result));
-          return result;
-        };
-      };
-  };
-
   // Search functionality based on indexed fields
   public shared func searchByIndex(schemaName: Text, indexName: Text, value: Text) : async Result<[Record], Text> {
     // Use queryByIndex to get matching record IDs
@@ -600,6 +425,50 @@ public shared func noOfSchema(): async Int {
           };
         };
         return #ok(matchingRecords);
+      };
+    };
+  };
+  public shared func deleteSchema(schemaName: Text): async Result<Bool, Text> {
+    // Check if the schema exists
+    let schemaOpt = schemas.get(schemaName);
+    switch (schemaOpt) {
+      case null {
+        return #err("Schema '" # schemaName # "' does not exist!");
+      };
+      case (?schema) {
+        // Remove all associated indexes
+        for (index in schema.indexes.vals()) {
+          let indexKey = schemaName # "." # index;
+          let removedIndexOpt = indexes.remove(indexKey);
+          switch (removedIndexOpt) {
+            case null {
+              Debug.print("⚠️ Index '" # indexKey # "' was not found during deletion.");
+            };
+            case (?_removedIndex) {
+              Debug.print("✅ Index '" # indexKey # "' deleted successfully.");
+            };
+          };
+        };
+
+        // Remove all associated records
+        let removedRecordsOpt = records.remove(schemaName);
+        switch (removedRecordsOpt) {
+          case null {
+            Debug.print("⚠️ Records for schema '" # schemaName # "' were not found during deletion.");
+          };
+          case (?_removedRecords) {
+            Debug.print("✅ Records for schema '" # schemaName # "' deleted successfully.");
+          };
+        };
+
+        // Finally, remove the schema itself
+        let removedSchemaOpt = schemas.remove(schemaName);
+        if (removedSchemaOpt == null) {
+          return #err("Unexpected error: Schema '" # schemaName # "' could not be removed.");
+        } else {
+          Debug.print("✅ Schema '" # schemaName # "' deleted successfully.");
+          return #ok(true);
+        };
       };
     };
   };
@@ -675,6 +544,226 @@ public shared func noOfSchema(): async Int {
       };
     };
   };
+  public shared func deleteAllRecords(schemaName: Text): async Result<Bool, Text> {
+    // Check if the schema exists
+    let schemaOpt = schemas.get(schemaName);
+    switch (schemaOpt) {
+        case null {
+            return #err("Schema not found!");
+        };
+        case (?schema) {
+            // Get the records for the schema
+            let schemaRecordsOpt = records.get(schemaName);
+            switch (schemaRecordsOpt) {
+                case null {
+                    return #err("No records found for schema.");
+                };
+                case (?schemaRecords) {
+                    // Iterate directly over the record IDs and remove them
+                    for (recordId in schemaRecords.keys()) {
+                        ignore schemaRecords.remove(recordId);
+                    };
+                    records.put(schemaName, schemaRecords);
+
+                    // Remove all index entries for this schema
+                    for (index in schema.indexes.vals()) {
+                        let indexKey = schemaName # "." # index;
+                        let indexMapOpt = indexes.get(indexKey);
+                        switch (indexMapOpt) {
+                            case null {
+                                Debug.print("⚠️ Index '" # index # "' not found during cleanup.");
+                            };
+                            case (?indexMap) {
+                                // Iterate directly over the field values and remove them
+                                for (fieldValue in indexMap.keys()) {
+                                    ignore indexMap.remove(fieldValue);
+                                };
+                                indexes.put(indexKey, indexMap);
+                            };
+                        };
+                    };
+                    return #ok(true);
+                };
+            };
+        };
+    };
+  };
+  public shared func deleteRecordsByIndex(schemaName: Text, fieldName: Text, fieldValue: Text): async Result<Bool, Text> {
+    // Check if the schema exists
+    let schemaOpt = schemas.get(schemaName);
+    switch (schemaOpt) {
+        case null {
+            return #err("Schema not found!");
+        };
+        case (?schema) {
+            // Ensure the field is indexed
+            if (!Array.contains<Text>(schema.indexes, fieldName)) {
+                return #err("Field '" # fieldName # "' is not an indexed field.");
+            };
+
+            let indexKey = schemaName # "." # fieldName;
+            let indexMapOpt = indexes.get(indexKey);
+            switch (indexMapOpt) {
+                case null {
+                    return #err("Index '" # fieldName # "' not found.");
+                };
+                case (?indexMap) {
+                    let recordIdsOpt = indexMap.get(fieldValue);
+                    switch (recordIdsOpt) {
+                        case null {
+                            return #err("No records found for field '" # fieldName # "' with value '" # fieldValue # "'.");
+                        };
+                        case (?recordIds) {
+                            let schemaRecordsOpt = records.get(schemaName);
+                            switch (schemaRecordsOpt) {
+                                case null {
+                                    return #err("Record storage for schema not initialized properly.");
+                                };
+                                case (?schemaRecords) {
+                                    for (recordId in recordIds.vals()) {
+                                        ignore schemaRecords.remove(recordId); // Remove from schema records
+                                    };
+                                    records.put(schemaName, schemaRecords);
+
+                                    // Remove the field value from the index
+                                    ignore indexMap.remove(fieldValue);
+                                    indexes.put(indexKey, indexMap);
+
+                                    return #ok(true);
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+};
+
+
+
+
+
+  public  func getRecordSizes(schemaName: Text): async Result<[Text], Text> {
+    // Retrieve the records for the schema
+    let schemaRecordsOpt = records.get(schemaName);
+  
+    switch (schemaRecordsOpt) {
+        case null {
+            return #err("Schema not found or no records exist!");
+        };
+        case (?schemaRecords) {
+            var sizes: [Text] = [];
+            for ((recordId, record) in schemaRecords.entries()) {
+                // Calculate the size of the record using foldLeft
+                let size = Array.foldLeft<(Text, Text), Int>(
+                    record.fields,
+                    0,
+                    func(acc: Int, field: (Text, Text)): Int {
+                        let (fieldName, fieldValue) = field;
+                        acc + fieldName.size() + fieldValue.size();
+                    }
+                );
+                // Convert size to Text and append to sizes array
+                sizes := Array.append(sizes, [recordId # ": " # Int.toText(size) # " bytes"]);
+            };
+            let result = sizes;
+            return #ok(result);
+        };
+    };
+  };
+  public query func getRecord(schemaName: Text, recordId: Text): async Result<Text, Text> {
+      // Retrieve the records for the schema
+      let schemaRecordsOpt = records.get(schemaName);
+      switch (schemaRecordsOpt) {
+          case null {
+              return #err("Schema not found or no records exist!");
+          };
+          case (?schemaRecords) {
+              // Check if the record exists in the schema
+              switch (schemaRecords.get(recordId)) {
+                  case null {
+                      return #err("Record not found!");
+                  };
+                  case (?record) {
+                      // Calculate the size of the record and collect field details
+                      var fieldDetails: [Text] = [];
+                      let size = Array.foldLeft<(Text, Text), Int>(
+                          record.fields,
+                          0,
+                          func(acc: Int, field: (Text, Text)): Int {
+                              let (fieldName, fieldValue) = field;
+                              // Collect field details in a human-readable format
+                              fieldDetails := Array.append(fieldDetails, [fieldName # ": " # fieldValue ]);
+                              acc + fieldName.size() + fieldValue.size();
+                          }
+                      );
+                      // Join the field details into a single Text string
+                      let fieldDetailsStr = Text.join("\n", Iter.fromArray(fieldDetails));
+                      // Return the size and field details
+                      let details = "Record ID: " # recordId # "\n" #
+                                    "Size: " # Int.toText(size) # " bytes\n" #
+                                    "Fields:\n" # fieldDetailsStr;
+                      return #ok(details);
+                  };
+              };
+          };
+      };
+  };
+  // List all schemas created
+  public query func listSchemas(): async [Text] {
+    Iter.toArray(schemas.keys())
+  };
+  // Return the total number of schemas
+  public shared func noOfSchema(): async Int {
+      let schemaList = Iter.toArray(schemas.keys());
+      return Array.size(schemaList); // Return the size of the schema list
+  };
+  public query func getSchema(schemaName: Text) : async ?Schema {
+    schemas.get(schemaName);
+  };
+
+  public query func getAllRecords(schemaName: Text): async Result<[Record], Text> {
+    // Retrieve the records for the specified schema
+    let schemaRecordsOpt = records.get(schemaName);
+    switch (schemaRecordsOpt) {
+        case null {
+            return #err("Schema not found or no records exist!");
+        };
+        case (?schemaRecords) {
+            // Convert the schema records to an array of `Record`
+            let recordsArray = Array.map<(Text, { fields: [(Text, Text)] }), Record>(
+                Iter.toArray(schemaRecords.entries()),
+                func(entry: (Text, { fields: [(Text, Text)] })): Record {
+                    let (recordId, recordData) = entry;
+                    {
+                        id = recordId;
+                        fields = recordData.fields;
+                    };
+                }
+            );
+            return #ok(recordsArray);
+        };
+    };
+  };
+ //Helper function:: Query data using an index
+  public query func queryByIndex(schemaName: Text, indexName: Text, value: Text) : async ?[Text] {
+      let indexKey = schemaName # "." # indexName;
+      Debug.print("🔍 Querying index key: " # indexKey # " for value: " # value);
+
+      let indexMap = indexes.get(indexKey);
+      switch (indexMap) {
+        case null {
+          Debug.print("❌ Index not found for key: " # indexKey);
+          return null;
+        };
+        case (?indexMap) {
+          let result = indexMap.get(value);
+          Debug.print("✅ Query result for value " # value # ": " # debug_show(result));
+          return result;
+        };
+      };
+  };
    // Helper function to get record by ID
   public query func getRecordById(schemaName: Text, recordId: Text) : async ?Record {
     let schemaRecords = records.get(schemaName);
@@ -687,8 +776,4 @@ public shared func noOfSchema(): async Int {
       };
     };
   };
-
-
-
-
 };
