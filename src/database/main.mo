@@ -1,4 +1,4 @@
- import Principal "mo:base/Principal";
+import Principal "mo:base/Principal";
 import TrieMap "mo:base/TrieMap";
 import Text "mo:base/Text";
 import Array "mo:base/Array";
@@ -7,13 +7,11 @@ import Int "mo:base/Int";
 import Iter "mo:base/Iter";
 import Debug "mo:base/Debug";
 
-
-
-
 actor QuikDB {
   private var owner: Principal = Principal.fromText("2vxsx-fae");
-  private var totalRecordSize: Int = 0;
+  private var isOwnerInitialized: Bool = false; 
 
+  private var totalRecordSize: Int = 0;
 
   type Field = {
     name: Text;
@@ -24,7 +22,7 @@ actor QuikDB {
   type Schema = {
     schemaName: Text;
     fields: [Field];
-    indexes: [Text]; // User-defined indexes (up to 2 fields)
+    indexes: [Text]; 
     createdAt: Int;
   };
 
@@ -38,26 +36,25 @@ actor QuikDB {
     fields: [(Text, Text)];  // Array of (fieldName, value) pairs
   };
 
-    public func initOwner(initOwner: Principal): async Bool {
-        if (Principal.isAnonymous(owner)) { // Ensure it can only be initialized once
-            owner := initOwner;
-            return true;
-        } else {
-            return false; // Already initialized
-        };
+    // Helper function to initialize the owner
+  public shared(msg) func initOwner(): async Bool {
+    if (isOwnerInitialized) {
+      return false;
     };
+    owner := msg.caller;
+    isOwnerInitialized := true; 
+    return true;
+  };
 
     // Getter function for the owner
-        public query func getOwner(): async Principal {
-            owner;
-        };
+    public query func getOwner(): async Principal {
+        owner;
+    };
 
   // Initialize an empty TrieMap for schemas and indexes
   private let schemas = TrieMap.TrieMap<Text, Schema>(Text.equal, Text.hash);
   private let indexes = TrieMap.TrieMap<Text, TrieMap.TrieMap<Text, [Text]>>(Text.equal, Text.hash);
   private let records = TrieMap.TrieMap<Text, TrieMap.TrieMap<Text, Record>>(Text.equal, Text.hash);
-  
-  
 
 
   public func createSchema(
@@ -65,6 +62,10 @@ actor QuikDB {
       customFields: [Field],
       userDefinedIndexes: [Text]
     ) : async Result<Bool, Text> {
+      // Check if the owner has been initialized and if the caller is the owner
+      if (not isOwnerInitialized) {
+          return #err("Owner has not been initialized. Please call initOwner first.");
+      };
       // Check if the schema already exists
       if (schemas.get(schemaName) != null) {
         return #err("A schema with this name already exists!");
@@ -120,6 +121,10 @@ actor QuikDB {
       return #ok(true);
   };
   public shared func createRecordData(schemaName: Text, record: Record): async Result<Bool, Text> {
+      // Check if the owner has been initialized and if the caller is the owner
+      if (not isOwnerInitialized) {
+          return #err("Owner has not been initialized. Please call initOwner first.");
+      };
       // Convert Record to TrieMap internally for field validation
       let recordMap = TrieMap.fromEntries<Text, Text>(record.fields.vals(), Text.equal, Text.hash);
 
@@ -243,6 +248,10 @@ actor QuikDB {
       recordId: Text,
       updatedFields: [(Text, Text)]
     ) : async Result<Bool, Text> {
+        // Check if the owner has been initialized and if the caller is the owner
+      if (not isOwnerInitialized) {
+          return #err("Owner has not been initialized. Please call initOwner first.");
+      };
       // Fetch the schema
       let schemaOpt = schemas.get(schemaName);
       switch (schemaOpt) {
@@ -520,6 +529,10 @@ actor QuikDB {
   };
   // Delete a record
   public shared func deleteRecord(schemaName: Text, recordId: Text) : async Result<Bool, Text> {
+      // Check if the owner has been initialized and if the caller is the owner
+      if (not isOwnerInitialized) {
+          return #err("Owner has not been initialized. Please call initOwner first.");
+      };
     // Check if the schema exists
     let schemaOpt = schemas.get(schemaName);
     switch (schemaOpt) {
@@ -591,6 +604,10 @@ actor QuikDB {
     };
   };
   public shared func deleteAllRecords(schemaName: Text): async Result<Bool, Text> {
+      // Check if the owner has been initialized and if the caller is the owner
+      if (not isOwnerInitialized) {
+          return #err("Owner has not been initialized. Please call initOwner first.");
+      };
     // Check if the schema exists
     let schemaOpt = schemas.get(schemaName);
     switch (schemaOpt) {
@@ -635,6 +652,10 @@ actor QuikDB {
     };
   };
   public shared func deleteRecordsByIndex(schemaName: Text, fieldName: Text, fieldValue: Text): async Result<Bool, Text> {
+      // Check if the owner has been initialized and if the caller is the owner
+      if (not isOwnerInitialized) {
+          return #err("Owner has not been initialized. Please call initOwner first.");
+      };
     // Check if the schema exists
     let schemaOpt = schemas.get(schemaName);
     switch (schemaOpt) {
@@ -687,8 +708,6 @@ actor QuikDB {
         };
     };
   };
-
-
   public  func getRecordSizes(schemaName: Text): async Result<[Text], Text> {
     // Retrieve the records for the schema
     let schemaRecordsOpt = records.get(schemaName);
