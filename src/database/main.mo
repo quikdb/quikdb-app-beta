@@ -18,6 +18,7 @@ actor QuikDB {
   type Field = {
     name: Text;
     fieldType: Text;
+    unique: Bool; 
   };
 
   type Schema = {
@@ -56,7 +57,9 @@ actor QuikDB {
   private let indexes = TrieMap.TrieMap<Text, TrieMap.TrieMap<Text, [Text]>>(Text.equal, Text.hash);
   private let records = TrieMap.TrieMap<Text, TrieMap.TrieMap<Text, Record>>(Text.equal, Text.hash);
   
- 
+  
+
+
   public func createSchema(
       schemaName: Text,
       customFields: [Field],
@@ -74,8 +77,9 @@ actor QuikDB {
 
       // Add default fields
       let defaultFields: [Field] = [
-        { name = "creation_timestamp"; fieldType = "timestamp" },
-        { name = "update_timestamp"; fieldType = "timestamp" }
+        { name = "creation_timestamp"; fieldType = "timestamp"; unique = false },
+        { name = "update_timestamp"; fieldType = "timestamp"; unique = false }
+
       ];
 
       // Combine default fields with user-provided fields
@@ -115,32 +119,71 @@ actor QuikDB {
 
       return #ok(true);
   };
- 
-  // Insert data into the schema and update indexes
-  public shared func insertData(schemaName: Text, record: Record): async Result<Bool, Text> {
+  public shared func createRecordData(schemaName: Text, record: Record): async Result<Bool, Text> {
       // Convert Record to TrieMap internally for field validation
       let recordMap = TrieMap.fromEntries<Text, Text>(record.fields.vals(), Text.equal, Text.hash);
 
       // Check if schema exists
-      let schema = schemas.get(schemaName);
-      switch (schema) {
+      let schemaOpt = schemas.get(schemaName);
+      switch (schemaOpt) {
           case null {
               return #err("Schema not found!");
           };
           case (?schema) {
-              // Validate fields
+              // Validate fields but skip 'creation_timestamp' and 'update_timestamp'
               for (field in schema.fields.vals()) {
-                  if (recordMap.get(field.name) == null) {
-                      return #err("Field '" # field.name # "' is missing in the record.");
-                  };
+                  if (field.name != "creation_timestamp" and field.name != "update_timestamp") {
+                      // Validate that the field is present in the record
+                      if (recordMap.get(field.name) == null) {
+                          return #err("Field '" # field.name # "' is missing in the record.");
+                      };
+
+                      // Enforce uniqueness for fields marked as unique
+                      if (field.unique) {
+                          let fieldValue = recordMap.get(field.name);
+                          switch (fieldValue) {
+                              case null {
+                                  return #err("Field '" # field.name # "' has no value in the record.");
+                              };
+                              case (?value) {
+                                  // Check if the value already exists in the records
+                                  let indexKey = schemaName # "." # field.name;
+                                  let indexMapOpt = indexes.get(indexKey);
+                                  switch (indexMapOpt) {
+                                      case null {
+                                          // Index not found, initialize it
+                                          let newIndexMap = TrieMap.TrieMap<Text, [Text]>(Text.equal, Text.hash);
+                                          newIndexMap.put(value, [record.id]);
+                                          indexes.put(indexKey, newIndexMap);
+                                      };
+                                      case (?indexMap) {
+                                          let existingRecordIdsOpt = indexMap.get(value);
+                                          switch (existingRecordIdsOpt) {
+                                              case null {};
+                                              case (?_existingRecordIds) {
+                                                  // If the value already exists, reject the insert
+                                                  return #err("Duplicate value found for unique field '" # field.name # "'.");
+                                              };
+                                          };
+                                      };
+                                  };
+                              };
+                          };
+                      };
+                  }
               };
+
+              // Automatically set timestamps
+              let currentTimestamp = Int.toText(Time.now());
+              recordMap.put("creation_timestamp", currentTimestamp);
+              recordMap.put("update_timestamp", currentTimestamp);
 
               // Use record.id directly
               let recordId = record.id;
 
               // Check if the record ID already exists
-              let schemaRecords = records.get(schemaName);
-              switch (schemaRecords) {
+              let schemaRecordsOpt = records.get(schemaName);
+              switch (schemaRecordsOpt) {
                   case null {
                       return #err("Record storage for schema not initialized properly.");
                   };
@@ -148,15 +191,22 @@ actor QuikDB {
                       if (schemaRecords.get(recordId) != null) {
                           return #err("Record with ID '" # recordId # "' already exists. Insertion aborted.");
                       };
-                      schemaRecords.put(recordId, record); // Store the new record
+
+                      // Update the record to include timestamps
+                      let newRecord: Record = {
+                          id = recordId;
+                          fields = Iter.toArray(recordMap.entries()); // Convert iterator to array
+                      };
+
+                      schemaRecords.put(recordId, newRecord); // Store the new record
                   };
               };
 
               // Update indexes
               for (index in schema.indexes.vals()) {
                   let indexKey = schemaName # "." # index;
-                  let indexMap = indexes.get(indexKey);
-                  switch (indexMap) {
+                  let indexMapOpt = indexes.get(indexKey);
+                  switch (indexMapOpt) {
                       case null {
                           return #err("Index '" # index # "' not initialized properly.");
                       };
@@ -167,17 +217,17 @@ actor QuikDB {
                                   return #err("Field '" # index # "' is missing in the record.");
                               };
                               case (?fieldValue) {
-                              let records = indexMap.get(fieldValue);
-                                switch (records) {
-                                  case null {
-                                    // Insert the actual record ID
-                                    indexMap.put(fieldValue, [recordId]);
+                                  let recordsOpt = indexMap.get(fieldValue);
+                                  switch (recordsOpt) {
+                                      case null {
+                                          // Insert the actual record ID into the index
+                                          indexMap.put(fieldValue, [recordId]);
+                                      };
+                                      case (?records) {
+                                          // Append the new record ID to the existing list
+                                          indexMap.put(fieldValue, Array.append(records, [recordId]));
+                                      };
                                   };
-                                  case (?records) {
-                                    // Append the new record ID to existing list
-                                    indexMap.put(fieldValue, Array.append(records, [recordId]));
-                                  };
-                                };
                               };
                           };
                       };
@@ -741,7 +791,7 @@ actor QuikDB {
     };
   };
  //Helper function:: Query data using an index
-  private query func queryByIndex(schemaName: Text, indexName: Text, value: Text) : async ?[Text] {
+  private  func queryByIndex(schemaName: Text, indexName: Text, value: Text) : async ?[Text] {
       let indexKey = schemaName # "." # indexName;
       Debug.print("🔍 Querying index key: " # indexKey # " for value: " # value);
 
@@ -759,7 +809,7 @@ actor QuikDB {
       };
   };
    // Helper function to get record by ID
-  private query func getRecordById(schemaName: Text, recordId: Text) : async ?Record {
+  private  func getRecordById(schemaName: Text, recordId: Text) : async ?Record {
     let schemaRecords = records.get(schemaName);
     switch (schemaRecords) {
       case null {
