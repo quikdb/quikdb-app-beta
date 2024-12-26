@@ -538,7 +538,7 @@ type Record = { id: Text; fields: [(Text, Text)] };
 
         // Perform deletion of the record
         // let _ = await QuikDB.deleteData("Student", "student1");
-        switch (await QuikDB.deleteData("Student", "student1")) {
+        switch (await QuikDB.deleteRecord("Student", "student1")) {
             case (#ok(true)) {
             Debug.print("✅ Deleted 'student1' successfully.");
             };

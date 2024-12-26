@@ -167,21 +167,17 @@ actor QuikDB {
                                   return #err("Field '" # index # "' is missing in the record.");
                               };
                               case (?fieldValue) {
-                                  // Check for uniqueness
-                                  let recordsWithIndex = indexMap.get(fieldValue);
-                                  switch (recordsWithIndex) {
-                                      case (?existingRecords) {
-                                          if (Array.size(existingRecords) > 0) {
-                                              return #err("Record with the same value for indexed field '" # index # "' already exists.");
-                                          };
-                                      };
-                                      case null {
-                                          // No records exist for this indexed value, continue
-                                      };
+                              let records = indexMap.get(fieldValue);
+                                switch (records) {
+                                  case null {
+                                    // Insert the actual record ID
+                                    indexMap.put(fieldValue, [recordId]);
                                   };
-
-                                  // Insert the actual record ID into the index
-                                  indexMap.put(fieldValue, [recordId]);
+                                  case (?records) {
+                                    // Append the new record ID to existing list
+                                    indexMap.put(fieldValue, Array.append(records, [recordId]));
+                                  };
+                                };
                               };
                           };
                       };
@@ -473,7 +469,7 @@ actor QuikDB {
     };
   };
   // Delete a record
-  public shared func deleteData(schemaName: Text, recordId: Text) : async Result<Bool, Text> {
+  public shared func deleteRecord(schemaName: Text, recordId: Text) : async Result<Bool, Text> {
     // Check if the schema exists
     let schemaOpt = schemas.get(schemaName);
     switch (schemaOpt) {
@@ -597,7 +593,7 @@ actor QuikDB {
         };
         case (?schema) {
             // Ensure the field is indexed
-            if (!Array.contains<Text>(schema.indexes, fieldName)) {
+            if (Array.find<Text>(schema.indexes, func(index) { index == fieldName }) == null) {
                 return #err("Field '" # fieldName # "' is not an indexed field.");
             };
 
@@ -620,7 +616,9 @@ actor QuikDB {
                                     return #err("Record storage for schema not initialized properly.");
                                 };
                                 case (?schemaRecords) {
-                                    for (recordId in recordIds.vals()) {
+                                    // Convert recordIds to an iterable using Iter.fromArray
+                                    let iterableRecordIds = Iter.fromArray(recordIds);
+                                    for (recordId in iterableRecordIds) { // Iterate over the iterable
                                         ignore schemaRecords.remove(recordId); // Remove from schema records
                                     };
                                     records.put(schemaName, schemaRecords);
@@ -638,10 +636,7 @@ actor QuikDB {
             };
         };
     };
-};
-
-
-
+  };
 
 
   public  func getRecordSizes(schemaName: Text): async Result<[Text], Text> {
@@ -722,7 +717,6 @@ actor QuikDB {
   public query func getSchema(schemaName: Text) : async ?Schema {
     schemas.get(schemaName);
   };
-
   public query func getAllRecords(schemaName: Text): async Result<[Record], Text> {
     // Retrieve the records for the specified schema
     let schemaRecordsOpt = records.get(schemaName);
