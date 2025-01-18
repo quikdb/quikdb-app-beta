@@ -6,12 +6,17 @@ import Time "mo:base/Time";
 import Int "mo:base/Int";
 import Iter "mo:base/Iter";
 import Debug "mo:base/Debug";
+import Nat "mo:base/Nat";
+import Blob "mo:base/Blob";
 
 actor QuikDB {
   private var owner: Principal = Principal.fromText("2vxsx-fae");
   private var isOwnerInitialized: Bool = false; 
 
   private var totalRecordSize: Int = 0;
+  // Counter for generating unique chunk IDs
+  private var chunkCounter: Nat = 0;
+
 
   type Field = {
     name: Text;
@@ -51,10 +56,64 @@ actor QuikDB {
         owner;
     };
 
+  // Storage for chunks: Chunk ID (Text) -> Chunk (Blob)
+  private var chunkStorage = TrieMap.TrieMap<Text, Blob>(Text.equal, Text.hash);
+
   // Initialize an empty TrieMap for schemas and indexes
   private let schemas = TrieMap.TrieMap<Text, Schema>(Text.equal, Text.hash);
   private let indexes = TrieMap.TrieMap<Text, TrieMap.TrieMap<Text, [Text]>>(Text.equal, Text.hash);
   private let records = TrieMap.TrieMap<Text, TrieMap.TrieMap<Text, Record>>(Text.equal, Text.hash);
+  
+    /// Generate a unique Chunk ID
+    private func generateChunkID(): Text {
+        chunkCounter += 1;
+        return "chunk_" # Nat.toText(chunkCounter);
+    };
+
+    /// Upload a single chunk
+    /// Input: Chunk as Blob (Motoko equivalent of Buffer)
+    /// Output: Chunk ID as Text
+    public shared func uploadChunk(chunk: Blob): async Text {
+        let chunkID = generateChunkID();
+        chunkStorage.put(chunkID, chunk); // Store chunk in the map
+        return chunkID;
+    };
+    /// Upload all chunks in parallel
+    /// Input: Array of chunks (Blobs)
+    /// Output: Array of Chunk IDs
+    public shared func uploadChunks(chunks: [Blob]): async [Text] {
+        // Map over the chunks array and upload each in parallel
+        var chunkIDs: [Text] = [];
+        for (chunk in chunks.vals()) {
+            let chunkID = await uploadChunk(chunk);
+            chunkIDs := Array.append(chunkIDs, [chunkID]);
+        };
+        return chunkIDs;
+    };
+
+    /// Retrieve a chunk by its Chunk ID (for testing or use)
+    /// Input: Chunk ID
+    /// Output: Chunk (Blob) or null if not found
+    public shared query func getChunk(chunkID: Text): async ?Blob {
+        return chunkStorage.get(chunkID);
+    };
+    /// Retrieve multiple chunks
+    /// Input: Array of Chunk IDs ([Text])
+    /// Output: Array of Retrieved Chunks ([?Blob])
+    public shared query func getChunks(chunkIDs: [Text]): async [Blob] {
+        return Array.map<Text, Blob>(chunkIDs, func(chunkID) {
+            switch (chunkStorage.get(chunkID)) {
+                case (?chunk) chunk; // Found the chunk
+                case null { return Blob.fromArray([]); }
+            }
+        });
+    };
+
+
+    /// Retrieve all stored chunks (optional utility function)
+    public shared query func getAllChunks(): async [(Text, Blob)] {
+        return Iter.toArray(chunkStorage.entries());
+    };
 
 
   public func createSchema(
@@ -515,7 +574,6 @@ actor QuikDB {
             Debug.print("✅ Records for schema '" # schemaName # "' deleted successfully.");
           };
         };
-
         // Finally, remove the schema itself
         let removedSchemaOpt = schemas.remove(schemaName);
         if (removedSchemaOpt == null) {
@@ -690,12 +748,12 @@ actor QuikDB {
                                     // Convert recordIds to an iterable using Iter.fromArray
                                     let iterableRecordIds = Iter.fromArray(recordIds);
                                     for (recordId in iterableRecordIds) { // Iterate over the iterable
-                                        ignore schemaRecords.remove(recordId); // Remove from schema records
+                                       let _ = schemaRecords.remove(recordId); // Remove from schema records
                                     };
                                     records.put(schemaName, schemaRecords);
 
                                     // Remove the field value from the index
-                                    ignore indexMap.remove(fieldValue);
+                                    let _ = indexMap.remove(fieldValue);
                                     indexes.put(indexKey, indexMap);
 
                                     return #ok(true);

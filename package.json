@@ -1,0 +1,17 @@
+{
+  "name": "quikdb-app-beta",
+  "version": "1.0.0",
+  "description": "Welcome to your new `database` project and to the Internet Computer development community. By default, creating a new project adds this README and some template files to your project directory. You can edit these template files to customize your project and to include your own code to speed up the development cycle.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@dfinity/agent": "^2.2.0",
+    "@dfinity/candid": "^2.2.0"
+  },
+  "type": "module"
+}
